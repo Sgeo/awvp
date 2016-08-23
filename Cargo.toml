@@ -4,3 +4,8 @@ version = "0.1.0"
 authors = ["Sgeo <sgeoster@gmail.com>"]
 
 [dependencies]
+libc = "0.2.15"
+
+[lib]
+name = "Aw"
+crate-type = ["cdylib"]

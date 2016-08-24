@@ -1,5 +1,3 @@
-#![allow(non_snake_case)]
-
 use std::sync::atomic::AtomicPtr;
 use std::sync::atomic::Ordering;
 
@@ -19,12 +17,19 @@ lazy_static! {
 }
 
 #[no_mangle]
-pub extern fn aw_init(version: c_int) -> c_int {
+pub extern fn aw_init(_version: c_int) -> c_int {
+    println!("Init!");
     0
 }
 
 #[no_mangle]
-pub extern fn aw_say(text: *const c_char) -> c_int {
+pub extern fn aw_say(_text: *const c_char) -> c_int {
+    println!("Say!");
+    0
+}
+
+#[no_mangle]
+pub extern fn aw_server_world_set(_foo: c_int) -> c_int {
     0
 }
 

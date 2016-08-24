@@ -16,9 +16,15 @@ lazy_static! {
     static ref INSTANCE: AtomicPtr<()> = AtomicPtr::new(std::ptr::null_mut());
 }
 
+fn instance() -> *mut () {
+    INSTANCE.load(Ordering::SeqCst)
+}
+
 #[no_mangle]
 pub extern fn aw_init(_version: c_int) -> c_int {
-    println!("Init!");
+    unsafe {
+        vp_init(3);
+    }
     0
 }
 

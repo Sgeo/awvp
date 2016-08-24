@@ -1,9 +1,30 @@
 #![allow(non_snake_case)]
 
+use std::sync::atomic::AtomicPtr;
+use std::sync::atomic::Ordering;
+
 extern crate libc;
+use libc::{c_int, c_char};
+
+#[link(name="VPSDK")]
+extern {
+    fn vp_init(version: c_int) -> c_int;
+}
+
+#[macro_use]
+extern crate lazy_static;
+
+lazy_static! {
+    static ref INSTANCE: AtomicPtr<()> = AtomicPtr::new(std::ptr::null_mut());
+}
 
 #[no_mangle]
-pub extern fn aw_init(version: libc::c_int) -> libc::c_int {
+pub extern fn aw_init(version: c_int) -> c_int {
+    0
+}
+
+#[no_mangle]
+pub extern fn aw_say(text: *const c_char) -> c_int {
     0
 }
 

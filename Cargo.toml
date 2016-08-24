@@ -2,9 +2,11 @@
 name = "awvp"
 version = "0.1.0"
 authors = ["Sgeo <sgeoster@gmail.com>"]
+build = "build.rs"
 
 [dependencies]
 libc = "0.2.15"
+lazy_static = "0.2.1"
 
 [lib]
 name = "Aw"

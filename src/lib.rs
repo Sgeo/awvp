@@ -4,6 +4,8 @@ use std::sync::atomic::Ordering;
 extern crate libc;
 use libc::{c_int, c_char};
 
+mod rc;
+
 #[link(name="VPSDK")]
 extern {
     fn vp_init(version: c_int) -> c_int;

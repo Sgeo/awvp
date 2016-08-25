@@ -6,6 +6,8 @@ use libc::{c_int, c_char};
 
 mod rc;
 
+use rc::rc;
+
 #[link(name="VPSDK")]
 extern {
     fn vp_init(version: c_int) -> c_int;

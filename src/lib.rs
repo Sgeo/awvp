@@ -23,7 +23,7 @@ lazy_static! {
 fn instance() -> *mut () {
     INSTANCE.load(Ordering::SeqCst)
 }
-
+/*
 #[no_mangle]
 pub extern fn aw_init(_version: c_int) -> c_int {
     unsafe {
@@ -41,7 +41,9 @@ pub extern fn aw_say(_text: *const c_char) -> c_int {
 #[no_mangle]
 pub extern fn aw_server_world_set(_foo: c_int) -> c_int {
     0
-}
+}*/
+
+pub mod unimpl;
 
 #[allow(dead_code)]
 fn spare() { println!(""); } //adding this (doesn't have to be named "spare") makes the compilation work. https://github.com/rust-lang/rust/issues/18807

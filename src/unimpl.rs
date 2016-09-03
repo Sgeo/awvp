@@ -3,7 +3,8 @@
 #![allow(dead_code,
          non_camel_case_types,
          non_upper_case_globals,
-         non_snake_case)]
+         non_snake_case,
+         unused_variables)]
 pub type AW_ATTRIBUTE = i32;
 pub const AW_LOGIN_NAME: AW_ATTRIBUTE = 0;
 pub const AW_LOGIN_PASSWORD: AW_ATTRIBUTE = 1;
@@ -489,27 +490,11 @@ pub const AW_REGISTER_MONTHLY: AW_REGISTER_METHODS = 0;
 pub const AW_REGISTER_ANNUAL: AW_REGISTER_METHODS = 1;
 pub const AW_REGISTER_USER: AW_REGISTER_METHODS = 2;
 
-static mut CURRENT_INSTANCE: *mut ::std::os::raw::c_void = 0 as *mut _;
+static mut CURRENT_INSTANCE: *mut ::std::os::raw::c_void = 1 as *mut _;
 
-#[no_mangle] pub extern fn aw_init(build: ::std::os::raw::c_int) -> ::std::os::raw::c_int { 
-    extern crate flexi_logger;
-    let mut config = flexi_logger::LogConfig::new();
-    config.log_to_file = true;
-    flexi_logger::init(config, None);
-    0
-}
+
 #[no_mangle] pub extern fn aw_term() {}
-#[no_mangle] pub extern fn aw_create(domain: *const ::std::os::raw::c_char,
-                 port: ::std::os::raw::c_int,
-                 instance: *mut *mut ::std::os::raw::c_void)
- -> ::std::os::raw::c_int {
-    let box_ = Box::new(());
-    unsafe {
-        *instance = Box::into_raw(box_) as *mut _;
-        CURRENT_INSTANCE = *instance;
-    }
-    0
- }
+
 #[no_mangle] pub extern fn aw_create_resolved(address: ::std::os::raw::c_ulong,
                           port: ::std::os::raw::c_int,
                           instance: *mut *mut ::std::os::raw::c_void)

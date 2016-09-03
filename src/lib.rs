@@ -21,10 +21,10 @@ fn instance() -> *mut () {
 
 pub mod unimpl;
 
-
+#[allow(dead_code)]
 mod raw;
 mod globals;
-mod instance;
+pub mod instance;
 mod attributes;
 
 #[allow(dead_code)]

@@ -1,4 +1,4 @@
-use libc::c_int;
+use std::os::raw::c_int;
 
 #[allow(dead_code)] pub const RC_SUCCESS: c_int = 0;
 #[allow(dead_code)] pub const RC_VERSION_MISMATCH: c_int = 1;

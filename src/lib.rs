@@ -1,8 +1,8 @@
 use std::sync::atomic::AtomicPtr;
 use std::sync::atomic::Ordering;
 
-extern crate libc;
-use libc::{c_int, c_char};
+#[macro_use]
+extern crate log;
 
 mod rc;
 

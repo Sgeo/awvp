@@ -491,7 +491,13 @@ pub const AW_REGISTER_USER: AW_REGISTER_METHODS = 2;
 
 static mut CURRENT_INSTANCE: *mut ::std::os::raw::c_void = 0 as *mut _;
 
-#[no_mangle] pub extern fn aw_init(build: ::std::os::raw::c_int) -> ::std::os::raw::c_int { 0 }
+#[no_mangle] pub extern fn aw_init(build: ::std::os::raw::c_int) -> ::std::os::raw::c_int { 
+    extern crate flexi_logger;
+    let mut config = flexi_logger::LogConfig::new();
+    config.log_to_file = true;
+    flexi_logger::init(config, None);
+    0
+}
 #[no_mangle] pub extern fn aw_term() {}
 #[no_mangle] pub extern fn aw_create(domain: *const ::std::os::raw::c_char,
                  port: ::std::os::raw::c_int,
@@ -524,7 +530,7 @@ static mut CURRENT_INSTANCE: *mut ::std::os::raw::c_void = 0 as *mut _;
     unsafe { CURRENT_INSTANCE = instance }
     0
  }
-#[no_mangle] pub extern fn aw_login() -> ::std::os::raw::c_int { 0 }
+#[no_mangle] pub extern fn aw_login() -> ::std::os::raw::c_int { debug!("aw_login();"); 0 }
 #[no_mangle] pub extern fn aw_wait(milliseconds: ::std::os::raw::c_int)
  -> ::std::os::raw::c_int { 0 }
 #[no_mangle] pub extern fn aw_int(a: AW_ATTRIBUTE) -> ::std::os::raw::c_int { 0 }
@@ -560,7 +566,7 @@ static mut CURRENT_INSTANCE: *mut ::std::os::raw::c_void = 0 as *mut _;
                        callback:
                            ::std::option::Option<extern "C" fn(rc:
                                                                    ::std::os::raw::c_int)>)
- -> ::std::os::raw::c_int { 0 }
+ -> ::std::os::raw::c_int { debug!("aw_callback_set({}, ...);", c); 0 }
 #[no_mangle] pub extern fn aw_event(a: AW_EVENT_ATTRIBUTE)
  -> ::std::option::Option<extern "C" fn(a: AW_EVENT_ATTRIBUTE)> { None }
 #[no_mangle] pub extern fn aw_event_set(a: AW_EVENT_ATTRIBUTE,

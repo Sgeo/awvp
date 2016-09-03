@@ -24,6 +24,8 @@ pub mod unimpl;
 
 mod raw;
 mod globals;
+mod instance;
+mod attributes;
 
 #[allow(dead_code)]
 fn spare() { println!(""); } //adding this (doesn't have to be named "spare") makes the compilation work. https://github.com/rust-lang/rust/issues/18807

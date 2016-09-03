@@ -1,6 +1,10 @@
 use raw::{aw, vp};
 
-struct Instance {
-    vp_instance: vp::VPInstance,
-    
+use attributes::AttribBuffer;
+
+pub struct Instance {
+    pub vp_instance: vp::VPInstance,
+    pub attributes: AttribBuffer
 }
+
+unsafe impl Send for Instance {}

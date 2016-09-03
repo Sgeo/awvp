@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 use std::sync::Mutex;
-use std::os::raw::c_int;
+use std::os::raw::{c_int, c_void};
 
 use raw::aw;
-use raw::vp;
+use raw::vp::{self, VPInstance};
 
 use instance::Instance;
 
@@ -29,4 +29,12 @@ impl Globals {
     pub fn current_instance(&self) -> &Instance {
         self.instances.get(&self.current).expect("Unable to find current instance!")
     }
+}
+
+pub fn vp(globals: Option<&Globals>) -> VPInstance {
+    let current = match globals {
+        Some(globals) => globals.current,
+        None => GLOBALS.lock().unwrap().current
+    };
+    current as *mut c_void
 }

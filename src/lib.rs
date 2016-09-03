@@ -8,11 +8,6 @@ mod rc;
 
 use rc::rc;
 
-#[link(name="VPSDK")]
-extern {
-    fn vp_init(version: c_int) -> c_int;
-}
-
 #[macro_use]
 extern crate lazy_static;
 
@@ -23,25 +18,6 @@ lazy_static! {
 fn instance() -> *mut () {
     INSTANCE.load(Ordering::SeqCst)
 }
-/*
-#[no_mangle]
-pub extern fn aw_init(_version: c_int) -> c_int {
-    unsafe {
-        vp_init(3);
-    }
-    0
-}
-
-#[no_mangle]
-pub extern fn aw_say(_text: *const c_char) -> c_int {
-    println!("Say!");
-    0
-}
-
-#[no_mangle]
-pub extern fn aw_server_world_set(_foo: c_int) -> c_int {
-    0
-}*/
 
 pub mod unimpl;
 

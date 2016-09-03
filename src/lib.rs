@@ -21,6 +21,10 @@ fn instance() -> *mut () {
 
 pub mod unimpl;
 
+
+mod raw;
+mod globals;
+
 #[allow(dead_code)]
 fn spare() { println!(""); } //adding this (doesn't have to be named "spare") makes the compilation work. https://github.com/rust-lang/rust/issues/18807
 

@@ -38,7 +38,7 @@ pub extern fn aw_create(domain: *const c_char, port: c_int, instance: *mut *mut 
         result = vp::connect_universe(vp, dest_domain, dest_port);
         // TODO: Insert event/callback listeners here. Do not listen to CONNECT_UNIVERSE.
     }
-    let instance = Instance { attributes: AttribBuffer::new() };
+    let instance = Instance { vp: vp, attributes: AttribBuffer::new() };
     let mut globals = GLOBALS.lock().unwrap();
     globals.current = vp as usize;
     globals.instances.insert(vp as usize, instance);

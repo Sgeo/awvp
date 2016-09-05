@@ -26,24 +26,28 @@ impl AttribBuffer {
     pub fn set<T: Attrib>(&mut self, attribute: aw::ATTRIBUTE, value: T) {
         self.attribs.insert(attribute, value.to_attrib());
     }
-    pub fn get<T: Attrib>(&self, attribute: aw::ATTRIBUTE) -> Option<&T> {
+    pub fn get<T: Attrib>(&self, attribute: aw::ATTRIBUTE) -> Option<T> {
         self.attribs.get(&attribute).and_then(|a| Attrib::from_attrib(a))
     }
 }
 
-pub trait Attrib {
+pub trait Attrib: Sized {
     fn to_attrib(self) -> AttribValue;
-    fn from_attrib(orig: &AttribValue) -> Option<&Self>;
+    fn from_attrib(orig: &AttribValue) -> Option<Self>;
     fn default() -> Self;
+    
+    fn into_req<Other: Attrib>(self) -> Option<Other> {
+        Attrib::from_attrib(&self.to_attrib())
+    }
 }
 
 impl Attrib for c_int {
     fn to_attrib(self) -> AttribValue {
         AttribValue::Int(self)
     }
-    fn from_attrib(orig: &AttribValue) -> Option<&Self> {
+    fn from_attrib(orig: &AttribValue) -> Option<Self> {
         match *orig {
-            AttribValue::Int(ref val) => Some(val),
+            AttribValue::Int(val) => Some(val),
             _            => None
         }
     }
@@ -54,9 +58,9 @@ impl Attrib for CString {
     fn to_attrib(self) -> AttribValue {
         AttribValue::String(self)
     }
-    fn from_attrib(orig: &AttribValue) -> Option<&Self> {
+    fn from_attrib(orig: &AttribValue) -> Option<Self> {
         match *orig {
-            AttribValue::String(ref val) => Some(val),
+            AttribValue::String(ref val) => Some(val.clone()),
             _            => None
         }
     }
@@ -67,9 +71,9 @@ impl Attrib for f32 {
     fn to_attrib(self) -> AttribValue {
         AttribValue::Float(self)
     }
-    fn from_attrib(orig: &AttribValue) -> Option<&Self> {
+    fn from_attrib(orig: &AttribValue) -> Option<Self> {
         match *orig {
-            AttribValue::Float(ref val) => Some(val),
+            AttribValue::Float(val) => Some(val),
             _            => None
         }
     }
@@ -80,9 +84,9 @@ impl Attrib for Vec<u8> {
     fn to_attrib(self) -> AttribValue {
         AttribValue::Data(self)
     }
-    fn from_attrib(orig: &AttribValue) -> Option<&Self> {
+    fn from_attrib(orig: &AttribValue) -> Option<Self> {
         match *orig {
-            AttribValue::Data(ref val) => Some(val),
+            AttribValue::Data(ref val) => Some(val.clone()),
             _            => None
         }
     }

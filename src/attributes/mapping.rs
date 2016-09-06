@@ -29,7 +29,7 @@ pub trait InstanceExt {
 impl InstanceExt for Instance {
     fn get<T: Attrib>(&mut self, attribute: aw::ATTRIBUTE) -> Option<T> {
         match attribute {
-            aw::CITIZEN_NUMBER => unsafe { vp::int(self.vp, vp::USER_ID) }.into_req(),
+            aw::ATTRIBUTE::CITIZEN_NUMBER => unsafe { vp::int(self.vp, vp::USER_ID) }.into_req(),
             _ => self.attributes.get(attribute)
         }
     }

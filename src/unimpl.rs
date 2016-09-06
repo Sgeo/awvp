@@ -547,11 +547,11 @@ static mut CURRENT_INSTANCE: *mut ::std::os::raw::c_void = 1 as *mut _;
  -> ::std::option::Option<extern "C" fn(c: AW_CALLBACK)> {
     None
  }
-#[no_mangle] pub extern fn aw_callback_set(c: AW_CALLBACK,
+#[no_mangle] pub extern fn aw_callback_set(c: ::raw::aw::CALLBACK,
                        callback:
                            ::std::option::Option<extern "C" fn(rc:
                                                                    ::std::os::raw::c_int)>)
- -> ::std::os::raw::c_int { debug!("aw_callback_set({}, ...);", c); 0 }
+ -> ::std::os::raw::c_int { debug!("aw_callback_set({:?}, ...);", c); 0 }
 #[no_mangle] pub extern fn aw_event(a: AW_EVENT_ATTRIBUTE)
  -> ::std::option::Option<extern "C" fn(a: AW_EVENT_ATTRIBUTE)> { None }
 #[no_mangle] pub extern fn aw_event_set(a: AW_EVENT_ATTRIBUTE,

@@ -14,13 +14,13 @@ pub enum AttribValue {
 }
 
 pub struct AttribBuffer {
-    pub attribs: HashMap<c_int, AttribValue>
+    pub attribs: HashMap<aw::ATTRIBUTE, AttribValue>
 }
 
 impl AttribBuffer {
     pub fn new() -> Self {
         AttribBuffer {
-            attribs: HashMap::with_capacity(aw::MAX_ATTRIBUTE as usize)
+            attribs: HashMap::with_capacity(aw::ATTRIBUTE::MAX_ATTRIBUTE as usize)
         }
     }
     pub fn set<T: Attrib>(&mut self, attribute: aw::ATTRIBUTE, value: T) {

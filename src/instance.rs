@@ -5,13 +5,14 @@ use raw::{aw, vp};
 use std::os::raw::c_int;
 
 use std::collections::HashMap;
+use std::rc::Rc;
 
 use attributes::AttribBuffer;
 
 pub struct Instance {
     pub vp: vp::VPInstance,
     pub vp_event_closures: HashMap<vp::event_t, Box<FnMut(vp::VPInstance)>>,
-    pub vp_callback_closures: HashMap<vp::event_t, Box<FnMut(vp::VPInstance, c_int, c_int)>>,
+    pub vp_callback_closures: HashMap<vp::event_t, Rc<Box<Fn(vp::VPInstance, c_int, c_int)>>>,
     pub attributes: AttribBuffer
 }
 

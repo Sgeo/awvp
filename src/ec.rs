@@ -10,13 +10,11 @@ macro_rules! generate_callback {
         if $this_callback_name == $current_callback_name {
             extern "C" fn callback(instance: VPInstance, arg1: c_int, arg2: c_int) {
                 let mut globals = GLOBALS.lock().unwrap();
-                let maybe_closure = globals.instances.get_mut(&(instance as usize)).and_then(|i| i.vp_callback_closures.remove(&$this_callback_name));
+                let maybe_closure = globals.instances.get(&(instance as usize)).and_then(|i| i.vp_callback_closures.get(&$this_callback_name)).map(|callback| callback.clone());
                 match maybe_closure {
-                    Some(mut closure) => {
+                    Some(closure) => {
                         drop(globals);
                         closure(instance, arg1, arg2);
-                        let mut globals = GLOBALS.lock().unwrap();
-                        globals.instances.get_mut(&(instance as usize)).unwrap().vp_callback_closures.entry($this_callback_name).or_insert(closure);
                     },
                     None => { debug!("Attempted to call closure not present!") }
                 }

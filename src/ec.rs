@@ -9,7 +9,7 @@ macro_rules! generate_callback {
     ($this_callback_name:expr, $current_callback_name:expr, $current_instance:expr, $activate:expr) => {{
         if $this_callback_name == $current_callback_name {
             extern "C" fn callback(instance: VPInstance, arg1: c_int, arg2: c_int) {
-                let mut globals = GLOBALS.lock().unwrap();
+                let globals = GLOBALS.lock().unwrap();
                 let maybe_closure = globals.instances.get(&(instance as usize)).and_then(|i| i.vp_callback_closures.get(&$this_callback_name)).map(|callback| callback.clone());
                 match maybe_closure {
                     Some(closure) => {
@@ -35,10 +35,13 @@ macro_rules! generate_event {
     ($this_event_name:expr, $current_event_name:expr, $current_instance:expr, $activate:expr) => {{
         if $this_event_name == $current_event_name {
             extern "C" fn event_handler(instance: VPInstance) {
-                let mut globals = GLOBALS.lock().unwrap();
-                let maybe_closure = globals.instances.get_mut(&(instance as usize)).and_then(|i| i.vp_event_closures.get_mut(&$this_event_name));
+                let globals = GLOBALS.lock().unwrap();
+                let maybe_closure = globals.instances.get(&(instance as usize)).and_then(|i| i.vp_event_closures.get(&$this_event_name)).map(|handler| handler.clone());
                 match maybe_closure {
-                    Some(closure) => closure(instance),
+                    Some(closure) => {
+                        drop(globals);
+                        closure(instance)
+                    },
                     None => ()
                 }
             }

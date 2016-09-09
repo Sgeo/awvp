@@ -6,7 +6,6 @@ use globals::{GLOBALS, vp};
 use raw::{aw, vp};
 
 use instance::Instance;
-use attributes::AttribBuffer;
 
 use rc::rc;
 
@@ -38,7 +37,7 @@ pub extern fn aw_create(domain: *const c_char, port: c_int, instance: *mut *mut 
         result = vp::connect_universe(vp, dest_domain, dest_port);
         // TODO: Insert event/callback listeners here. Do not listen to CONNECT_UNIVERSE.
     }
-    let instance = Instance { vp: vp, attributes: AttribBuffer::new() };
+    let instance = Instance::new(vp);
     let mut globals = GLOBALS.lock().unwrap();
     globals.current = vp as usize;
     globals.instances.insert(vp as usize, instance);

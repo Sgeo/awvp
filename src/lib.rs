@@ -26,6 +26,7 @@ mod raw;
 mod globals;
 mod instance;
 mod attributes;
+mod ec;
 
 pub mod impled;
 

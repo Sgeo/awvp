@@ -1,4 +1,4 @@
-use std::os::raw::{c_int, c_char};
+use std::os::raw::{c_int, c_char, c_void, c_uint};
 use std::ffi::CString;
 use std::collections::HashMap;
 
@@ -108,5 +108,27 @@ impl Attrib for Vec<u8> {
         }
     }
     fn default() -> Self { Vec::new() }
+}
+
+impl Attrib for (*mut c_void, c_uint) {
+    fn to_attrib(self) -> AttribValue {
+        if self.0.is_null() {
+            return AttribValue::Data(Vec::new());
+        }
+        let len = self.1 as usize;
+        let ptr = self.0 as *mut u8;
+        unsafe {
+            AttribValue::Data(unsafe {Vec::from_raw_parts(ptr, len, len)})
+        }
+    }
+    fn from_attrib(orig: &AttribValue) -> Option<Self> {
+        match *orig {
+            AttribValue::Data(ref val) => Some((val.as_ptr() as *mut _, val.len() as c_uint)),
+            _            => None
+        }
+    }
+    fn default() -> Self {
+        (0x1 as *mut c_void, 0)
+    }
 }
 

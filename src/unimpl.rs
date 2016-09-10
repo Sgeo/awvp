@@ -519,20 +519,7 @@ static mut CURRENT_INSTANCE: *mut ::std::os::raw::c_void = 1 as *mut _;
 #[no_mangle] pub extern fn aw_wait(milliseconds: ::std::os::raw::c_int)
  -> ::std::os::raw::c_int { 0 }
  
-#[no_mangle] pub extern fn aw_data(a: AW_ATTRIBUTE, length: *mut ::std::os::raw::c_uint)
- -> *mut ::std::os::raw::c_char {
-    unsafe {
-        *length = 0;
-    }
-    ::std::ptr::null_mut()
-}
-#[no_mangle] pub extern fn aw_data_set(a: AW_ATTRIBUTE, value: *const ::std::os::raw::c_char,
-                   length: ::std::os::raw::c_uint)
- -> ::std::os::raw::c_int { 0 }
-#[no_mangle] pub extern fn aw_callback(c: AW_CALLBACK)
- -> ::std::option::Option<extern "C" fn(c: AW_CALLBACK)> {
-    None
- }
+
 #[no_mangle] pub extern fn aw_callback_set(c: ::raw::aw::CALLBACK,
                        callback:
                            ::std::option::Option<extern "C" fn(rc:

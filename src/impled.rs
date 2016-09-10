@@ -1,4 +1,4 @@
-use std::os::raw::{c_int, c_char, c_void};
+use std::os::raw::{c_int, c_char, c_void, c_uint};
 use std::ffi::CStr;
 
 use globals::{GLOBALS, vp};
@@ -107,5 +107,24 @@ pub extern fn aw_string_set(a: aw::ATTRIBUTE, value: *mut c_char) -> c_int {
     let mut globals = GLOBALS.lock().unwrap();
     globals.current_instance_mut().set(a, value);
     debug!("aw_string_set({:?}, {:?});", a, unsafe { CStr::from_ptr(value as *const _) });
+    0
+}
+
+#[no_mangle]
+pub extern fn aw_data(a: aw::ATTRIBUTE, lenptr: *mut c_uint) -> *mut c_char {
+    let mut globals = GLOBALS.lock().unwrap();
+    let result: (*mut c_void, c_uint) = globals.current_instance_mut().get(a).unwrap();
+    unsafe {
+        *lenptr = result.1 as c_uint
+    }
+    debug!("aw_string({:?}) = ...", a);
+    result.0 as *mut c_char
+}
+
+#[no_mangle]
+pub extern fn aw_data_set(a: aw::ATTRIBUTE, value: *mut c_char, len: c_uint) -> c_int {
+    let mut globals = GLOBALS.lock().unwrap();
+    globals.current_instance_mut().set(a, (value as *mut c_void, len));
+    debug!("aw_data_set({:?}, ...;", a);
     0
 }

@@ -1,4 +1,4 @@
-use std::os::raw::{c_int};
+use std::os::raw::{c_int, c_char};
 use std::ffi::CString;
 use std::collections::HashMap;
 
@@ -65,6 +65,23 @@ impl Attrib for CString {
         }
     }
     fn default() -> Self { CString::new("").unwrap() }
+}
+
+impl Attrib for *mut c_char {
+    fn to_attrib(self) -> AttribValue {
+        unsafe {
+            AttribValue::String(CString::from_raw(self))
+        }
+    }
+    fn from_attrib(orig: &AttribValue) -> Option<Self> {
+        match *orig {
+            AttribValue::String(ref val) => Some(val.as_ptr() as *mut _),
+            _            => None
+        }
+    }
+    fn default() -> Self {
+        CString::new("").expect("Really? It's the empty string!").into_raw()
+    }
 }
 
 impl Attrib for f32 {

@@ -518,21 +518,7 @@ static mut CURRENT_INSTANCE: *mut ::std::os::raw::c_void = 1 as *mut _;
 #[no_mangle] pub extern fn aw_login() -> ::std::os::raw::c_int { debug!("aw_login();"); 0 }
 #[no_mangle] pub extern fn aw_wait(milliseconds: ::std::os::raw::c_int)
  -> ::std::os::raw::c_int { 0 }
-#[no_mangle] pub extern fn aw_int(a: AW_ATTRIBUTE) -> ::std::os::raw::c_int { 0 }
-#[no_mangle] pub extern fn aw_int_set(a: AW_ATTRIBUTE, value: ::std::os::raw::c_int)
- -> ::std::os::raw::c_int { 0 }
-#[no_mangle] pub extern fn aw_string(a: AW_ATTRIBUTE) -> *mut ::std::os::raw::c_char {
-    use std::ffi::CString;
-    CString::new("").expect("Really? It's the empty string!").into_raw()
-}
-#[no_mangle] pub extern fn aw_string_set(a: AW_ATTRIBUTE,
-                     value: *const ::std::os::raw::c_char)
- -> ::std::os::raw::c_int { 0 }
-#[no_mangle] pub extern fn aw_bool(a: AW_ATTRIBUTE) -> ::std::os::raw::c_int { 0 }
-#[no_mangle] pub extern fn aw_bool_set(a: AW_ATTRIBUTE, value: ::std::os::raw::c_int)
- -> ::std::os::raw::c_int { 0 }
-#[no_mangle] pub extern fn aw_float(a: AW_ATTRIBUTE) -> f32 { 0.0 }
-#[no_mangle] pub extern fn aw_float_set(a: AW_ATTRIBUTE, value: f32) -> ::std::os::raw::c_int { 0 }
+ 
 #[no_mangle] pub extern fn aw_data(a: AW_ATTRIBUTE, length: *mut ::std::os::raw::c_uint)
  -> *mut ::std::os::raw::c_char {
     unsafe {

@@ -29,6 +29,10 @@ impl Globals {
     pub fn current_instance(&self) -> &Instance {
         self.instances.get(&self.current).expect("Unable to find current instance!")
     }
+    pub fn current_instance_mut(&mut self) -> &mut Instance {
+        let current = self.current;
+        self.instances.get_mut(&current).expect("Unable to find current instance!")
+    }
 }
 
 pub fn vp(globals: Option<&Globals>) -> VPInstance {

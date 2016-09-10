@@ -7,6 +7,8 @@ use raw::{aw, vp};
 
 use instance::Instance;
 
+use attributes::mapping::InstanceExt;
+
 use rc::rc;
 
 #[no_mangle]
@@ -43,3 +45,67 @@ pub extern fn aw_create(domain: *const c_char, port: c_int, instance: *mut *mut 
     globals.instances.insert(vp as usize, instance);
     rc(result)
  }
+ 
+#[no_mangle]
+pub extern fn aw_int(a: aw::ATTRIBUTE) -> c_int {
+    let mut globals = GLOBALS.lock().unwrap();
+    let result = globals.current_instance_mut().get(a).unwrap();
+    debug!("aw_int({:?}) = {:?}", a, result);
+    result
+}
+
+#[no_mangle]
+pub extern fn aw_int_set(a: aw::ATTRIBUTE, value: c_int) -> c_int {
+    let mut globals = GLOBALS.lock().unwrap();
+    globals.current_instance_mut().set(a, value);
+    debug!("aw_int_set({:?}, {:?});", a, value);
+    0
+}
+
+#[no_mangle]
+pub extern fn aw_bool(a: aw::ATTRIBUTE) -> c_int {
+    let mut globals = GLOBALS.lock().unwrap();
+    let result = globals.current_instance_mut().get(a).unwrap();
+    debug!("aw_bool({:?}) = {:?}", a, result);
+    result
+}
+
+#[no_mangle]
+pub extern fn aw_bool_set(a: aw::ATTRIBUTE, value: c_int) -> c_int {
+    let mut globals = GLOBALS.lock().unwrap();
+    globals.current_instance_mut().set(a, value);
+    debug!("aw_bool_set({:?}, {:?});", a, value);
+    0
+}
+
+#[no_mangle]
+pub extern fn aw_float(a: aw::ATTRIBUTE) -> f32 {
+    let mut globals = GLOBALS.lock().unwrap();
+    let result = globals.current_instance_mut().get(a).unwrap();
+    debug!("aw_float({:?}) = {:?}", a, result);
+    result
+}
+
+#[no_mangle]
+pub extern fn aw_float_set(a: aw::ATTRIBUTE, value: f32) -> c_int {
+    let mut globals = GLOBALS.lock().unwrap();
+    globals.current_instance_mut().set(a, value);
+    debug!("aw_float_set({:?}, {:?});", a, value);
+    0
+}
+
+#[no_mangle]
+pub extern fn aw_string(a: aw::ATTRIBUTE) -> *mut c_char {
+    let mut globals = GLOBALS.lock().unwrap();
+    let result = globals.current_instance_mut().get(a).unwrap();
+    debug!("aw_string({:?}) = {:?}", a, unsafe { CStr::from_ptr(result as *const _) });
+    result
+}
+
+#[no_mangle]
+pub extern fn aw_string_set(a: aw::ATTRIBUTE, value: *mut c_char) -> c_int {
+    let mut globals = GLOBALS.lock().unwrap();
+    globals.current_instance_mut().set(a, value);
+    debug!("aw_string_set({:?}, {:?});", a, unsafe { CStr::from_ptr(value as *const _) });
+    0
+}

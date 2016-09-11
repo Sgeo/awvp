@@ -14,9 +14,17 @@ use rc::rc;
 #[no_mangle]
 pub extern fn aw_init() -> c_int {
     extern crate flexi_logger;
+    use std::panic;
     let mut config = flexi_logger::LogConfig::new();
     config.log_to_file = true;
     flexi_logger::init(config, None).expect("Unable to initialize logger");
+    
+    panic::set_hook(Box::new(|panic_info| {
+        error!("PANIC!");
+        error!("Panic Payload [str]: {:?}", panic_info.payload().downcast_ref::<&'static str>());
+        error!("Panic Payload [String]: {:?}", panic_info.payload().downcast_ref::<String>());
+        error!("Panic Location: File: {:?}, Line: {:?}", panic_info.location().unwrap().file(), panic_info.location().unwrap().line());
+    }));
     
     debug!("aw_init();");
     rc(unsafe { vp::init(3) })

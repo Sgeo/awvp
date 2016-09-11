@@ -154,3 +154,17 @@ pub extern fn aw_wait(milliseconds: c_int) -> c_int {
         return result;
     }
 }
+
+#[no_mangle]
+pub extern fn aw_instance() -> *mut c_void {
+    let result = GLOBALS.lock().unwrap().current as *mut c_void;
+    debug!("aw_instance() = {:?}", result);
+    result
+}
+
+#[no_mangle]
+pub extern fn aw_instance_set(instance: *mut c_void) -> c_int {
+    GLOBALS.lock().unwrap().current = instance as usize;
+    debug!("aw_instance_set({:?})", instance);
+    0
+}

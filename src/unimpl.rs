@@ -507,14 +507,7 @@ static mut CURRENT_INSTANCE: *mut ::std::os::raw::c_void = 1 as *mut _;
     0
  }
 #[no_mangle] pub extern fn aw_destroy() -> ::std::os::raw::c_int { 0 }
-#[no_mangle] pub extern fn aw_instance() -> *mut ::std::os::raw::c_void {
-    unsafe { CURRENT_INSTANCE }
-}
-#[no_mangle] pub extern fn aw_instance_set(instance: *mut ::std::os::raw::c_void)
- -> ::std::os::raw::c_int {
-    unsafe { CURRENT_INSTANCE = instance }
-    0
- }
+
 #[no_mangle] pub extern fn aw_login() -> ::std::os::raw::c_int { debug!("aw_login();"); 0 }
 
  

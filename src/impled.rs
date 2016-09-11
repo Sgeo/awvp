@@ -14,17 +14,22 @@ use rc::rc;
 #[no_mangle]
 pub extern fn aw_init() -> c_int {
     extern crate flexi_logger;
+    extern crate log_panics;
     use std::panic;
     let mut config = flexi_logger::LogConfig::new();
     config.log_to_file = true;
     flexi_logger::init(config, None).expect("Unable to initialize logger");
     
-    panic::set_hook(Box::new(|panic_info| {
+    log_panics::init();
+    
+    
+    /*panic::set_hook(Box::new(move |panic_info| {
         error!("PANIC!");
         error!("Panic Payload [str]: {:?}", panic_info.payload().downcast_ref::<&'static str>());
         error!("Panic Payload [String]: {:?}", panic_info.payload().downcast_ref::<String>());
         error!("Panic Location: File: {:?}, Line: {:?}", panic_info.location().unwrap().file(), panic_info.location().unwrap().line());
-    }));
+        error!("Backtrace: {:?}", backtrace);
+    }));*/
     
     debug!("aw_init();");
     rc(unsafe { vp::init(3) })
@@ -65,6 +70,7 @@ pub extern fn aw_int(a: aw::ATTRIBUTE) -> c_int {
 
 #[no_mangle]
 pub extern fn aw_int_set(a: aw::ATTRIBUTE, value: c_int) -> c_int {
+    debug!("aw_int_set");
     let mut globals = GLOBALS.lock().unwrap();
     globals.current_instance_mut().set(a, value);
     debug!("aw_int_set({:?}, {:?});", a, value);
@@ -113,6 +119,7 @@ pub extern fn aw_string(a: aw::ATTRIBUTE) -> *mut c_char {
 
 #[no_mangle]
 pub extern fn aw_string_set(a: aw::ATTRIBUTE, value: *mut c_char) -> c_int {
+    debug!("aw_string_set");
     let mut globals = GLOBALS.lock().unwrap();
     globals.current_instance_mut().set(a, value);
     debug!("aw_string_set({:?}, {:?});", a, unsafe { CStr::from_ptr(value as *const _) });
@@ -180,6 +187,7 @@ pub extern fn aw_instance_set(instance: *mut c_void) -> c_int {
 
 #[no_mangle]
 pub extern fn aw_login() -> c_int {
+    debug!("aw_login");
     use std::io::prelude::*;
     use std::io::BufReader;
     use std::fs::File;

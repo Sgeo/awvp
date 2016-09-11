@@ -1,5 +1,5 @@
 use std::os::raw::{c_int, c_char, c_void, c_uint};
-use std::ffi::CStr;
+use std::ffi::{CStr, CString};
 
 use globals::{GLOBALS, vp};
 
@@ -38,6 +38,7 @@ pub extern fn aw_create(domain: *const c_char, port: c_int, instance: *mut *mut 
         *instance = vp;
         result = vp::connect_universe(vp, dest_domain, dest_port);
         // TODO: Insert event/callback listeners here. Do not listen to CONNECT_UNIVERSE.
+        debug!("aw_create({:?}, {:?}) = instance: {:?}, rc: {:?}", dest_domain, dest_port, vp, rc(result));
     }
     let instance = Instance::new(vp);
     let mut globals = GLOBALS.lock().unwrap();
@@ -167,4 +168,36 @@ pub extern fn aw_instance_set(instance: *mut c_void) -> c_int {
     GLOBALS.lock().unwrap().current = instance as usize;
     debug!("aw_instance_set({:?})", instance);
     0
+}
+
+#[no_mangle]
+pub extern fn aw_login() -> c_int {
+    use std::io::prelude::*;
+    use std::io::BufReader;
+    use std::fs::File;
+    
+    let citnum: c_int;
+    let password: CString;
+    let botname: CString;
+    let mut citname: Option<CString> = None;
+    {
+        let mut globals = GLOBALS.lock().unwrap();
+        citnum = globals.current_instance_mut().get(aw::ATTRIBUTE::LOGIN_OWNER).unwrap();
+        password = globals.current_instance_mut().get(aw::ATTRIBUTE::LOGIN_PRIVILEGE_PASSWORD).unwrap();
+        botname = globals.current_instance_mut().get(aw::ATTRIBUTE::LOGIN_NAME).unwrap();
+    }
+    let prefix = format!("{}=", citnum);
+    let citizens_file = BufReader::new(File::open("citizens.txt").expect("Unable to find citizens.txt"));
+    for line in citizens_file.lines() {
+        let line = line.expect("???");
+        if line.starts_with(&prefix) {
+            citname = Some(CString::new(line.split('=').nth(1).expect("No =foo?")).expect("Unable to create CString"));
+            break
+        }
+    }
+    debug!("aw_login() [AW citnum: {:?}, VP citname: {:?}, Botname: {:?}]", citnum, citname.as_ref().expect("Unable to find citname"), &botname);
+    unsafe {
+        rc(vp::login(vp(None), citname.expect("Unable to find citname").as_ptr(), password.as_ptr(), botname.as_ptr()))
+    }
+    
 }

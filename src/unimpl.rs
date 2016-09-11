@@ -499,6 +499,7 @@ static mut CURRENT_INSTANCE: *mut ::std::os::raw::c_void = 1 as *mut _;
                           port: ::std::os::raw::c_int,
                           instance: *mut *mut ::std::os::raw::c_void)
  -> ::std::os::raw::c_int {
+    debug!("aw_create_resolved(..., ...);");
     let box_ = Box::new(());
     unsafe {
         *instance = Box::into_raw(box_) as *mut _;
@@ -508,7 +509,6 @@ static mut CURRENT_INSTANCE: *mut ::std::os::raw::c_void = 1 as *mut _;
  }
 #[no_mangle] pub extern fn aw_destroy() -> ::std::os::raw::c_int { 0 }
 
-#[no_mangle] pub extern fn aw_login() -> ::std::os::raw::c_int { debug!("aw_login();"); 0 }
 
  
 #[no_mangle] pub extern fn aw_callback(c: AW_CALLBACK)

@@ -511,7 +511,10 @@ static mut CURRENT_INSTANCE: *mut ::std::os::raw::c_void = 1 as *mut _;
 #[no_mangle] pub extern fn aw_login() -> ::std::os::raw::c_int { debug!("aw_login();"); 0 }
 
  
-
+#[no_mangle] pub extern fn aw_callback(c: AW_CALLBACK)
+ -> ::std::option::Option<extern "C" fn(c: AW_CALLBACK)> {
+    None
+ }
 #[no_mangle] pub extern fn aw_callback_set(c: ::raw::aw::CALLBACK,
                        callback:
                            ::std::option::Option<extern "C" fn(rc:

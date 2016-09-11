@@ -1,7 +1,8 @@
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 use raw::vp::{self, VPInstance};
 use globals::GLOBALS;
+use instance::Instance;
 
 use std::os::raw::c_int;
 
@@ -102,4 +103,58 @@ pub fn activate_event(vp: VPInstance, event_name: vp::event_t, activate:bool) {
     generate_event!(vp::EVENT_OBJECT_BUMP_END, event_name, vp, activate);
     generate_event!(vp::EVENT_TERRAIN_NODE_CHANGED, event_name, vp, activate);
     generate_event!(vp::EVENT_JOIN, event_name, vp, activate);
+}
+
+fn callback_closure_set(instance: &mut Instance, callback_name: vp::callback_t, closure: Option<Arc<Box<Fn(VPInstance, c_int, c_int)+'static>>>) {
+    if let Some(closure) = closure {
+        instance.vp_callback_closures.insert(callback_name, closure);
+        activate_callback(instance.vp, callback_name, true);
+    } else {
+        activate_callback(instance.vp, callback_name, false);
+        instance.vp_callback_closures.remove(&callback_name);
+    }
+}
+
+fn event_closure_set(instance: &mut Instance, event_name: vp::event_t, closure: Option<Arc<Box<Fn(VPInstance)+'static>>>) {
+    if let Some(closure) = closure {
+        instance.vp_event_closures.insert(event_name, closure);
+        activate_event(instance.vp, event_name, true);
+    } else {
+        activate_event(instance.vp, event_name, false);
+        instance.vp_event_closures.remove(&event_name);
+    }
+}
+
+pub fn callback_closure_set_all<F: Fn(VPInstance, c_int, c_int)+'static>(callback_name: vp::callback_t, closure: Option<F>) {
+    let closure = closure.map(|c| Arc::new(Box::new(c) as Box<Fn(VPInstance, c_int, c_int)+'static>));
+    let mut globals = GLOBALS.lock().unwrap();
+    for instance in globals.instances.values_mut() {
+        let closure_clone = closure.as_ref().map(|c| c.clone());
+        callback_closure_set(instance, callback_name, closure_clone);
+    }
+    match closure {
+        Some(closure) => {
+            globals.vp_callback_closures.insert(callback_name, closure);
+        },
+        None          => {
+            globals.vp_callback_closures.remove(&callback_name);
+        }
+    }
+}
+
+pub fn event_closure_set_all<F: Fn(VPInstance)+'static>(event_name: vp::callback_t, closure: Option<F>) {
+    let closure = closure.map(|c| Arc::new(Box::new(c) as Box<Fn(VPInstance)+'static>));
+    let mut globals = GLOBALS.lock().unwrap();
+    for instance in globals.instances.values_mut() {
+        let closure_clone = closure.as_ref().map(|c| c.clone());
+        event_closure_set(instance, event_name, closure_clone);
+    }
+    match closure {
+        Some(closure) => {
+            globals.vp_event_closures.insert(event_name, closure);
+        },
+        None          => {
+            globals.vp_event_closures.remove(&event_name);
+        }
+    }
 }

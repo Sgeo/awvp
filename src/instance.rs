@@ -11,8 +11,8 @@ use attributes::AttribBuffer;
 
 pub struct Instance {
     pub vp: vp::VPInstance,
-    pub vp_event_closures: HashMap<vp::event_t, Arc<Box<Fn(vp::VPInstance)>>>,
-    pub vp_callback_closures: HashMap<vp::event_t, Arc<Box<Fn(vp::VPInstance, c_int, c_int)>>>,
+    pub vp_event_closures: HashMap<vp::event_t, Arc<Box<Fn(vp::VPInstance)+'static>>>,
+    pub vp_callback_closures: HashMap<vp::event_t, Arc<Box<Fn(vp::VPInstance, c_int, c_int)+'static>>>,
     pub attributes: AttribBuffer
 }
 

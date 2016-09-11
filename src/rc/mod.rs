@@ -1,5 +1,5 @@
-mod aw;
-mod vp;
+pub mod aw;
+pub mod vp;
 
 use std::os::raw::c_int;
 

@@ -11,6 +11,15 @@ use attributes::mapping::InstanceExt;
 
 use rc::rc;
 
+macro_rules! try_rc {
+    ($expr:expr) => {
+        match $expr {
+            Ok(val) => val,
+            Err(error) => return error
+        }
+    }
+}
+
 #[no_mangle]
 pub extern fn aw_init() -> c_int {
     extern crate flexi_logger;
@@ -63,7 +72,7 @@ pub extern fn aw_create(domain: *const c_char, port: c_int, instance: *mut *mut 
 #[no_mangle]
 pub extern fn aw_int(a: aw::ATTRIBUTE) -> c_int {
     let mut globals = GLOBALS.lock().unwrap();
-    let result = globals.current_instance_mut().get(a).unwrap();
+    let result = globals.current_instance_mut().map(|instance| instance.get(a).unwrap()).unwrap_or(0);
     debug!("aw_int({:?}) = {:?}", a, result);
     result
 }
@@ -72,7 +81,7 @@ pub extern fn aw_int(a: aw::ATTRIBUTE) -> c_int {
 pub extern fn aw_int_set(a: aw::ATTRIBUTE, value: c_int) -> c_int {
     debug!("aw_int_set");
     let mut globals = GLOBALS.lock().unwrap();
-    globals.current_instance_mut().set(a, value);
+    try_rc!(globals.current_instance_mut()).set(a, value);
     debug!("aw_int_set({:?}, {:?});", a, value);
     0
 }
@@ -80,7 +89,7 @@ pub extern fn aw_int_set(a: aw::ATTRIBUTE, value: c_int) -> c_int {
 #[no_mangle]
 pub extern fn aw_bool(a: aw::ATTRIBUTE) -> c_int {
     let mut globals = GLOBALS.lock().unwrap();
-    let result = globals.current_instance_mut().get(a).unwrap();
+    let result = globals.current_instance_mut().map(|instance| instance.get(a).unwrap()).unwrap_or(0);
     debug!("aw_bool({:?}) = {:?}", a, result);
     result
 }
@@ -88,7 +97,7 @@ pub extern fn aw_bool(a: aw::ATTRIBUTE) -> c_int {
 #[no_mangle]
 pub extern fn aw_bool_set(a: aw::ATTRIBUTE, value: c_int) -> c_int {
     let mut globals = GLOBALS.lock().unwrap();
-    globals.current_instance_mut().set(a, value);
+    try_rc!(globals.current_instance_mut()).set(a, value);
     debug!("aw_bool_set({:?}, {:?});", a, value);
     0
 }
@@ -96,7 +105,7 @@ pub extern fn aw_bool_set(a: aw::ATTRIBUTE, value: c_int) -> c_int {
 #[no_mangle]
 pub extern fn aw_float(a: aw::ATTRIBUTE) -> f32 {
     let mut globals = GLOBALS.lock().unwrap();
-    let result = globals.current_instance_mut().get(a).unwrap();
+    let result = globals.current_instance_mut().map(|instance| instance.get(a).unwrap()).unwrap_or(0.0);
     debug!("aw_float({:?}) = {:?}", a, result);
     result
 }
@@ -104,7 +113,7 @@ pub extern fn aw_float(a: aw::ATTRIBUTE) -> f32 {
 #[no_mangle]
 pub extern fn aw_float_set(a: aw::ATTRIBUTE, value: f32) -> c_int {
     let mut globals = GLOBALS.lock().unwrap();
-    globals.current_instance_mut().set(a, value);
+    try_rc!(globals.current_instance_mut()).set(a, value);
     debug!("aw_float_set({:?}, {:?});", a, value);
     0
 }
@@ -112,16 +121,20 @@ pub extern fn aw_float_set(a: aw::ATTRIBUTE, value: f32) -> c_int {
 #[no_mangle]
 pub extern fn aw_string(a: aw::ATTRIBUTE) -> *mut c_char {
     let mut globals = GLOBALS.lock().unwrap();
-    let result = globals.current_instance_mut().get(a).unwrap();
-    debug!("aw_string({:?}) = {:?}", a, unsafe { CStr::from_ptr(result as *const _) });
+    debug!("aw_string({:?});", a);
+    let result = globals.current_instance_mut().map(|instance| instance.get(a).unwrap()).unwrap_or(::std::ptr::null_mut());
+    if result.is_null() {
+        debug!("aw_string({:?}) is NULL", a);
+    } else {
+        debug!("aw_string({:?}) = {:?}", a, unsafe { CStr::from_ptr(result as *const _) });
+    }
     result
 }
 
 #[no_mangle]
 pub extern fn aw_string_set(a: aw::ATTRIBUTE, value: *mut c_char) -> c_int {
-    debug!("aw_string_set");
     let mut globals = GLOBALS.lock().unwrap();
-    globals.current_instance_mut().set(a, value);
+    try_rc!(globals.current_instance_mut()).set(a, value);
     debug!("aw_string_set({:?}, {:?});", a, unsafe { CStr::from_ptr(value as *const _) });
     0
 }
@@ -129,7 +142,7 @@ pub extern fn aw_string_set(a: aw::ATTRIBUTE, value: *mut c_char) -> c_int {
 #[no_mangle]
 pub extern fn aw_data(a: aw::ATTRIBUTE, lenptr: *mut c_uint) -> *mut c_char {
     let mut globals = GLOBALS.lock().unwrap();
-    let result: (*mut c_void, c_uint) = globals.current_instance_mut().get(a).unwrap();
+    let result: (*mut c_void, c_uint) = globals.current_instance_mut().map(|instance| instance.get(a).unwrap()).unwrap_or((0x1 as *mut c_void, 0));
     unsafe {
         *lenptr = result.1 as c_uint
     }
@@ -140,7 +153,7 @@ pub extern fn aw_data(a: aw::ATTRIBUTE, lenptr: *mut c_uint) -> *mut c_char {
 #[no_mangle]
 pub extern fn aw_data_set(a: aw::ATTRIBUTE, value: *mut c_char, len: c_uint) -> c_int {
     let mut globals = GLOBALS.lock().unwrap();
-    globals.current_instance_mut().set(a, (value as *mut c_void, len));
+    try_rc!(globals.current_instance_mut()).set(a, (value as *mut c_void, len));
     debug!("aw_data_set({:?}, ...;", a);
     0
 }
@@ -198,9 +211,9 @@ pub extern fn aw_login() -> c_int {
     let mut citname: Option<CString> = None;
     {
         let mut globals = GLOBALS.lock().unwrap();
-        citnum = globals.current_instance_mut().get(aw::ATTRIBUTE::LOGIN_OWNER).unwrap();
-        password = globals.current_instance_mut().get(aw::ATTRIBUTE::LOGIN_PRIVILEGE_PASSWORD).unwrap();
-        botname = globals.current_instance_mut().get(aw::ATTRIBUTE::LOGIN_NAME).unwrap();
+        citnum = try_rc!(globals.current_instance_mut()).get(aw::ATTRIBUTE::LOGIN_OWNER).unwrap();
+        password = try_rc!(globals.current_instance_mut()).get(aw::ATTRIBUTE::LOGIN_PRIVILEGE_PASSWORD).unwrap();
+        botname = try_rc!(globals.current_instance_mut()).get(aw::ATTRIBUTE::LOGIN_NAME).unwrap();
     }
     let prefix = format!("{}=", citnum);
     let citizens_file = BufReader::new(File::open("citizens.txt").expect("Unable to find citizens.txt"));

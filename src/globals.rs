@@ -4,6 +4,7 @@ use std::os::raw::{c_int, c_void};
 
 use raw::aw;
 use raw::vp::{self, VPInstance};
+use rc;
 
 use instance::Instance;
 
@@ -32,12 +33,14 @@ lazy_static! {
 }
 
 impl Globals {
-    pub fn current_instance(&self) -> &Instance {
-        self.instances.get(&self.current).expect("Unable to find current instance!")
+    pub fn current_instance(&self) -> Result<&Instance, c_int> {
+        if self.current == 0 { return Err(rc::aw::RC_NO_INSTANCE); }
+        self.instances.get(&self.current).ok_or(rc::aw::RC_INVALID_INSTANCE)
     }
-    pub fn current_instance_mut(&mut self) -> &mut Instance {
+    pub fn current_instance_mut(&mut self) -> Result<&mut Instance, c_int> {
         let current = self.current;
-        self.instances.get_mut(&current).expect("Unable to find current instance!")
+        if current == 0 { return Err(rc::aw::RC_NO_INSTANCE); }
+        self.instances.get_mut(&current).ok_or(rc::aw::RC_INVALID_INSTANCE)
     }
 }
 

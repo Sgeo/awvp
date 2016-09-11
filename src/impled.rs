@@ -18,7 +18,7 @@ pub extern fn aw_init() -> c_int {
     config.log_to_file = true;
     flexi_logger::init(config, None).expect("Unable to initialize logger");
     
-    debug!("instance's aw_init!");
+    debug!("aw_init();");
     rc(unsafe { vp::init(3) })
 }
 
@@ -127,4 +127,30 @@ pub extern fn aw_data_set(a: aw::ATTRIBUTE, value: *mut c_char, len: c_uint) -> 
     globals.current_instance_mut().set(a, (value as *mut c_void, len));
     debug!("aw_data_set({:?}, ...;", a);
     0
+}
+
+#[no_mangle]
+pub extern fn aw_wait(milliseconds: c_int) -> c_int {
+    let instance = vp(None);
+    let mut result = 0;
+    debug!("aw_wait({:?});", milliseconds);
+    if milliseconds < 0 {
+        loop {
+            unsafe {
+                result = vp::wait(instance, 0);
+                if result != 0 { return rc(result); }
+            }
+        }
+    } else {
+        use std::time::{Instant, Duration};
+        let start = Instant::now();
+        let duration = Duration::from_millis(milliseconds as u64);
+        while start.elapsed() < duration {
+            unsafe {
+                result = vp::wait(instance, milliseconds);
+                if result != 0 { return rc(result); }
+            }
+        }
+        return result;
+    }
 }

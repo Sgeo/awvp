@@ -516,8 +516,7 @@ static mut CURRENT_INSTANCE: *mut ::std::os::raw::c_void = 1 as *mut _;
     0
  }
 #[no_mangle] pub extern fn aw_login() -> ::std::os::raw::c_int { debug!("aw_login();"); 0 }
-#[no_mangle] pub extern fn aw_wait(milliseconds: ::std::os::raw::c_int)
- -> ::std::os::raw::c_int { 0 }
+
  
 
 #[no_mangle] pub extern fn aw_callback_set(c: ::raw::aw::CALLBACK,

@@ -165,24 +165,30 @@ pub extern fn aw_data_set(a: aw::ATTRIBUTE, value: *mut c_char, len: c_uint) -> 
 
 #[no_mangle]
 pub extern fn aw_wait(milliseconds: c_int) -> c_int {
-    let instance = vp(None);
+    use raw::vp::VPInstance;
+    let instances: Vec<VPInstance> = GLOBALS.lock().unwrap().instances.keys().map(|iref| *iref as VPInstance).collect();
     let mut result = 0;
     debug!("aw_wait({:?});", milliseconds);
     if milliseconds < 0 {
         loop {
             unsafe {
-                result = vp::wait(instance, 0);
-                if result != 0 { return rc(result); }
+                for instance in &instances {
+                    result = vp::wait(*instance, 0);
+                    if result != 0 { return rc(result); }
+                }
             }
         }
     } else {
+        warn!("aw_wait(nonzero) may be buggy and not wait on all instances");
         use std::time::{Instant, Duration};
         let start = Instant::now();
         let duration = Duration::from_millis(milliseconds as u64);
-        while start.elapsed() < duration {
+        while start.elapsed() <= duration {
             unsafe {
-                result = vp::wait(instance, milliseconds);
-                if result != 0 { return rc(result); }
+                for instance in &instances {
+                    result = vp::wait(*instance, 0);
+                    if result != 0 { return rc(result); }
+                }
             }
         }
         return result;
@@ -233,7 +239,8 @@ pub extern fn aw_login() -> c_int {
     let result = unsafe {
         rc(vp::login(vp(None), citname.expect("Unable to find citname").as_ptr(), password.as_ptr(), botname.as_ptr()))
     };
-    ::ec::call_callback_closure(GLOBALS.lock().unwrap(), vp::CALLBACK_LOGIN, result)
+    //::ec::call_callback_closure(GLOBALS.lock().unwrap(), vp::CALLBACK_LOGIN, result)
+    result
 }
 
 #[no_mangle]
@@ -277,7 +284,8 @@ pub extern fn aw_callback_set(callback_name: aw::CALLBACK, callback: Option<exte
     let result = rc(unsafe {
         vp::enter(vp(None), world)
     });
-    ::ec::call_callback_closure(GLOBALS.lock().unwrap(), vp::CALLBACK_LOGIN, result)
+    //::ec::call_callback_closure(GLOBALS.lock().unwrap(), vp::CALLBACK_LOGIN, result)
+    result
 }
 
 #[no_mangle]

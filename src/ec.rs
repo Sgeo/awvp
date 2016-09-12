@@ -24,6 +24,7 @@ macro_rules! generate_callback {
             }
             unsafe {
                 if $activate {
+                    debug!("Calling vp_callback_set!");
                     vp::callback_set($current_instance, $current_callback_name, Some(callback));
                 } else {
                     vp::callback_set($current_instance, $current_callback_name, None);

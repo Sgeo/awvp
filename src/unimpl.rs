@@ -516,15 +516,12 @@ static mut CURRENT_INSTANCE: *mut ::std::os::raw::c_void = 1 as *mut _;
 #[no_mangle] pub extern fn aw_event_set(a: AW_EVENT_ATTRIBUTE,
                     handler: ::std::option::Option<extern "C" fn()>)
  -> ::std::os::raw::c_int { 0 }
-#[no_mangle] pub extern fn aw_enter(world: *const ::std::os::raw::c_char)
- -> ::std::os::raw::c_int { 0 }
 #[no_mangle] pub extern fn aw_exit() -> ::std::os::raw::c_int { 0 }
 #[no_mangle] pub extern fn aw_say(message: *const ::std::os::raw::c_char)
  -> ::std::os::raw::c_int { 0 }
 #[no_mangle] pub extern fn aw_whisper(session_id: ::std::os::raw::c_int,
                   message: *const ::std::os::raw::c_char)
  -> ::std::os::raw::c_int { 0 }
-#[no_mangle] pub extern fn aw_state_change() -> ::std::os::raw::c_int{ 0 }
 #[no_mangle] pub extern fn aw_citizen_attributes_by_name(name: *const ::std::os::raw::c_char)
  -> ::std::os::raw::c_int { 0 }
 #[no_mangle] pub extern fn aw_citizen_attributes_by_number(citizen: ::std::os::raw::c_int)
@@ -559,7 +556,7 @@ static mut CURRENT_INSTANCE: *mut ::std::os::raw::c_void = 1 as *mut _;
 #[no_mangle] pub extern fn aw_random() -> ::std::os::raw::c_int { 0 }
 #[no_mangle] pub extern fn aw_world_attributes_change() -> ::std::os::raw::c_int { 0 }
 #[no_mangle] pub extern fn aw_universe_attributes_change() -> ::std::os::raw::c_int { 0 }
-#[no_mangle] pub extern fn aw_session() -> ::std::os::raw::c_int { 0 }
+#[no_mangle] pub extern fn aw_session() -> ::std::os::raw::c_int { 1 }
 #[no_mangle] pub extern fn aw_world_eject() -> ::std::os::raw::c_int { 0 }
 #[no_mangle] pub extern fn aw_sector_from_cell(cell: ::std::os::raw::c_int)
  -> ::std::os::raw::c_int { 0 }

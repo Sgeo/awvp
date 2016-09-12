@@ -1,17 +1,17 @@
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, MutexGuard};
 
 use raw::vp::{self, VPInstance};
-use globals::GLOBALS;
+use globals::{GLOBALS, Globals};
 use instance::Instance;
 
-use std::os::raw::c_int;
+use std::os::raw::{c_int, c_void};
 
 macro_rules! generate_callback {
     ($this_callback_name:expr, $current_callback_name:expr, $current_instance:expr, $activate:expr) => {{
         if $this_callback_name == $current_callback_name {
             debug!("generate_callback({:?}, {:?}, ..., {:?})", $this_callback_name, $current_callback_name, $activate);
             extern "C" fn callback(instance: VPInstance, arg1: c_int, arg2: c_int) {
-                debug!("Inside native vp callback");
+                debug!("Inside native vp callback, this_callback_name: {:?}", $this_callback_name);
                 let globals = GLOBALS.lock().unwrap();
                 let maybe_closure = globals.instances.get(&(instance as usize)).and_then(|i| i.vp_callback_closures.get(&$this_callback_name)).map(|callback| callback.clone());
                 match maybe_closure {
@@ -142,6 +142,21 @@ pub fn callback_closure_set_all<F: Fn(VPInstance, c_int, c_int)+'static>(callbac
         },
         None          => {
             globals.vp_callback_closures.remove(&callback_name);
+        }
+    }
+}
+
+pub fn call_callback_closure<'a>(globals: MutexGuard<'a, Globals>, callback_name: vp::callback_t, rc: c_int) -> c_int {
+    let maybe_closure = try_rc!(globals.current_instance()).vp_callback_closures.get(&callback_name).map(|closure| closure.clone());
+    match maybe_closure {
+        Some(closure) => {
+            let instance = globals.current as *mut c_void;
+            drop(globals);
+            closure(instance, rc, 0);
+            0
+        },
+        None => {
+            rc
         }
     }
 }

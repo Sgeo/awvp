@@ -8,6 +8,15 @@ mod rc;
 
 use rc::rc;
 
+macro_rules! try_rc {
+    ($expr:expr) => {
+        match $expr {
+            Ok(val) => val,
+            Err(error) => return error
+        }
+    }
+}
+
 #[macro_use]
 extern crate lazy_static;
 

@@ -11,14 +11,7 @@ use attributes::mapping::InstanceExt;
 
 use rc::rc;
 
-macro_rules! try_rc {
-    ($expr:expr) => {
-        match $expr {
-            Ok(val) => val,
-            Err(error) => return error
-        }
-    }
-}
+
 
 #[no_mangle]
 pub extern fn aw_init() -> c_int {
@@ -240,11 +233,7 @@ pub extern fn aw_login() -> c_int {
     let result = unsafe {
         rc(vp::login(vp(None), citname.expect("Unable to find citname").as_ptr(), password.as_ptr(), botname.as_ptr()))
     };
-    let aw_callback = GLOBALS.lock().unwrap().aw_callbacks.get(&aw::CALLBACK::CALLBACK_LOGIN).map(|callback| *callback);
-    if let Some(callback) = aw_callback {
-        callback(result);
-    }
-    result
+    ::ec::call_callback_closure(GLOBALS.lock().unwrap(), vp::CALLBACK_LOGIN, result)
 }
 
 #[no_mangle]
@@ -281,4 +270,19 @@ pub extern fn aw_callback_set(callback_name: aw::CALLBACK, callback: Option<exte
         _                            => { debug!("No mapping for callback!"); ()}
     }
     0
+}
+
+#[no_mangle] pub extern fn aw_enter(world: *const c_char) -> c_int {
+    debug!("aw_enter({:?});", unsafe { CStr::from_ptr(world) });
+    let result = rc(unsafe {
+        vp::enter(vp(None), world)
+    });
+    ::ec::call_callback_closure(GLOBALS.lock().unwrap(), vp::CALLBACK_LOGIN, result)
+}
+
+#[no_mangle]
+pub extern fn aw_state_change() -> c_int {
+    rc(unsafe{
+        vp::state_change(vp(None))
+    })
 }

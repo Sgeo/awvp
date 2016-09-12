@@ -4,7 +4,7 @@ pub mod vp;
 use std::os::raw::c_int;
 
 pub fn rc(vp: c_int) -> c_int {
-    match vp {
+    let result = match vp {
         vp::RC_SUCCESS => aw::RC_SUCCESS,
         vp::RC_VERSION_MISMATCH => aw::RC_VERSION_MISMATCH,
         vp::RC_NOT_INITIALIZED => aw::RC_NOT_INITIALIZED,
@@ -33,5 +33,9 @@ pub fn rc(vp: c_int) -> c_int {
         vp::RC_VERIFICATION_FAILED => aw::RC_NO_CONNECTION,
         vp::RC_NO_SUCH_SESSION => aw::RC_NO_SUCH_SESSION,
         _ => aw::RC_NOT_AVAILABLE
+    };
+    if(vp != 0) {
+        debug!("rc({:?}) = {:?}", vp, result);
     }
+    result
 }

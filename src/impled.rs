@@ -62,10 +62,22 @@ pub extern fn aw_create(domain: *const c_char, port: c_int, instance: *mut *mut 
         // TODO: Insert event/callback listeners here. Do not listen to CONNECT_UNIVERSE.
         debug!("aw_create({:?}, {:?}) = instance: {:?}, rc: {:?}", dest_domain, dest_port, vp, rc(result));
     }
-    let instance = Instance::new(vp);
+    let mut instance = Instance::new(vp);
     let mut globals = GLOBALS.lock().unwrap();
+    
+    use ec::{callback_closure_set, event_closure_set};
+    
+    for (callback_name, closure) in &globals.vp_callback_closures {
+        debug!("Adding callback from globals to specific instance");
+        callback_closure_set(&mut instance, *callback_name, Some(closure.clone()));
+    }
+    for (event_name, closure) in &globals.vp_event_closures {
+        event_closure_set(&mut instance, *event_name, Some(closure.clone()));
+    }
+    
     globals.current = vp as usize;
     globals.instances.insert(vp as usize, instance);
+    
     rc(result)
  }
  
@@ -225,8 +237,48 @@ pub extern fn aw_login() -> c_int {
         }
     }
     debug!("aw_login() [AW citnum: {:?}, VP citname: {:?}, Botname: {:?}]", citnum, citname.as_ref().expect("Unable to find citname"), &botname);
-    unsafe {
+    let result = unsafe {
         rc(vp::login(vp(None), citname.expect("Unable to find citname").as_ptr(), password.as_ptr(), botname.as_ptr()))
+    };
+    let aw_callback = GLOBALS.lock().unwrap().aw_callbacks.get(&aw::CALLBACK::CALLBACK_LOGIN).map(|callback| *callback);
+    if let Some(callback) = aw_callback {
+        callback(result);
     }
+    result
+}
+
+#[no_mangle]
+pub extern fn aw_callback(callback_name: aw::CALLBACK) -> Option<extern "C" fn(rc: c_int)> {
+    let globals = GLOBALS.lock().unwrap();
+    globals.aw_callbacks.get(&callback_name).map(|callback| *callback)
+}
+
+#[no_mangle]
+pub extern fn aw_callback_set(callback_name: aw::CALLBACK, callback: Option<extern "C" fn(rc: c_int)>) -> c_int {
+    use ec::{callback_closure_set_all, event_closure_set_all};
     
+    debug!("aw_callback_set({:?}, ...);", callback_name);
+    let mut globals = GLOBALS.lock().unwrap();
+    match callback {
+        None => { globals.aw_callbacks.remove(&callback_name); () },
+        Some(callback) => { globals.aw_callbacks.insert(callback_name, callback); () }
+    };
+    drop(globals);
+    let closure = move |instance: vp::VPInstance, rc: c_int, unused: c_int| {
+        debug!("Inside a VP callback closure!");
+        let aw_callback;
+        {
+            let mut globals = GLOBALS.lock().unwrap();
+            aw_callback = *globals.aw_callbacks.get(&callback_name).expect("Unable to find aw_callback!");
+            globals.current = instance as usize;
+        }
+        aw_callback(rc);
+    };
+    let closure = callback.map(|_| closure);
+    match callback_name {
+        aw::CALLBACK::CALLBACK_LOGIN => callback_closure_set_all(vp::CALLBACK_LOGIN, closure),
+        aw::CALLBACK::CALLBACK_ENTER => callback_closure_set_all(vp::CALLBACK_ENTER, closure),
+        _                            => { debug!("No mapping for callback!"); ()}
+    }
+    0
 }

@@ -9,7 +9,9 @@ use std::os::raw::c_int;
 macro_rules! generate_callback {
     ($this_callback_name:expr, $current_callback_name:expr, $current_instance:expr, $activate:expr) => {{
         if $this_callback_name == $current_callback_name {
+            debug!("generate_callback({:?}, {:?}, ..., {:?})", $this_callback_name, $current_callback_name, $activate);
             extern "C" fn callback(instance: VPInstance, arg1: c_int, arg2: c_int) {
+                debug!("Inside native vp callback");
                 let globals = GLOBALS.lock().unwrap();
                 let maybe_closure = globals.instances.get(&(instance as usize)).and_then(|i| i.vp_callback_closures.get(&$this_callback_name)).map(|callback| callback.clone());
                 match maybe_closure {
@@ -105,7 +107,8 @@ pub fn activate_event(vp: VPInstance, event_name: vp::event_t, activate:bool) {
     generate_event!(vp::EVENT_JOIN, event_name, vp, activate);
 }
 
-fn callback_closure_set(instance: &mut Instance, callback_name: vp::callback_t, closure: Option<Arc<Box<Fn(VPInstance, c_int, c_int)+'static>>>) {
+pub fn callback_closure_set(instance: &mut Instance, callback_name: vp::callback_t, closure: Option<Arc<Box<Fn(VPInstance, c_int, c_int)+'static>>>) {
+    debug!("callback_closure_set({:?}, {:?}, {:?})", instance.vp, callback_name, closure.as_ref().map(|_| Some(())));
     if let Some(closure) = closure {
         instance.vp_callback_closures.insert(callback_name, closure);
         activate_callback(instance.vp, callback_name, true);
@@ -115,7 +118,7 @@ fn callback_closure_set(instance: &mut Instance, callback_name: vp::callback_t, 
     }
 }
 
-fn event_closure_set(instance: &mut Instance, event_name: vp::event_t, closure: Option<Arc<Box<Fn(VPInstance)+'static>>>) {
+pub fn event_closure_set(instance: &mut Instance, event_name: vp::event_t, closure: Option<Arc<Box<Fn(VPInstance)+'static>>>) {
     if let Some(closure) = closure {
         instance.vp_event_closures.insert(event_name, closure);
         activate_event(instance.vp, event_name, true);
@@ -126,6 +129,7 @@ fn event_closure_set(instance: &mut Instance, event_name: vp::event_t, closure: 
 }
 
 pub fn callback_closure_set_all<F: Fn(VPInstance, c_int, c_int)+'static>(callback_name: vp::callback_t, closure: Option<F>) {
+    debug!("callback_closure_set_all({:?}, {:?})", callback_name, closure.as_ref().map(|_| Some(())));
     let closure = closure.map(|c| Arc::new(Box::new(c) as Box<Fn(VPInstance, c_int, c_int)+'static>));
     let mut globals = GLOBALS.lock().unwrap();
     for instance in globals.instances.values_mut() {

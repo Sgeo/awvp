@@ -26,8 +26,8 @@ impl AttribBuffer {
     pub fn set<T: Attrib>(&mut self, attribute: aw::ATTRIBUTE, value: T) {
         self.attribs.insert(attribute, value.to_attrib());
     }
-    pub fn get<T: Attrib>(&self, attribute: aw::ATTRIBUTE) -> Option<T> {
-        self.attribs.get(&attribute).and_then(|a| Attrib::from_attrib(a))
+    pub fn get<T: Attrib>(&mut self, attribute: aw::ATTRIBUTE) -> Option<T> {
+        Attrib::from_attrib(self.attribs.entry(attribute).or_insert_with(|| T::default().to_attrib()))
     }
 }
 

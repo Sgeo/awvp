@@ -511,11 +511,7 @@ static mut CURRENT_INSTANCE: *mut ::std::os::raw::c_void = 1 as *mut _;
 
 
 
-#[no_mangle] pub extern fn aw_event(a: AW_EVENT_ATTRIBUTE)
- -> ::std::option::Option<extern "C" fn(a: AW_EVENT_ATTRIBUTE)> { None }
-#[no_mangle] pub extern fn aw_event_set(a: AW_EVENT_ATTRIBUTE,
-                    handler: ::std::option::Option<extern "C" fn()>)
- -> ::std::os::raw::c_int { 0 }
+
 #[no_mangle] pub extern fn aw_exit() -> ::std::os::raw::c_int { 0 }
 #[no_mangle] pub extern fn aw_say(message: *const ::std::os::raw::c_char)
  -> ::std::os::raw::c_int { 0 }

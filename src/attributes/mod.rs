@@ -1,5 +1,5 @@
 use std::os::raw::{c_int, c_char, c_void, c_uint};
-use std::ffi::CString;
+use std::ffi::{CString, CStr};
 use std::collections::HashMap;
 
 use raw::{aw, vp};
@@ -70,7 +70,7 @@ impl Attrib for CString {
 impl Attrib for *mut c_char {
     fn to_attrib(self) -> AttribValue {
         unsafe {
-            AttribValue::String(CString::from_raw(self))
+            AttribValue::String(CStr::from_ptr(self).to_owned())
         }
     }
     fn from_attrib(orig: &AttribValue) -> Option<Self> {

@@ -186,6 +186,7 @@ pub extern fn aw_wait(milliseconds: c_int) -> c_int {
         while start.elapsed() <= duration {
             unsafe {
                 for instance in &instances {
+                    debug!("vp_wait({:?}, 0);", *instance);
                     result = vp::wait(*instance, 0);
                     if result != 0 { return rc(result); }
                 }
@@ -250,6 +251,12 @@ pub extern fn aw_callback(callback_name: aw::CALLBACK) -> Option<extern "C" fn(r
 }
 
 #[no_mangle]
+pub extern fn aw_event(event_name: aw::EVENT_ATTRIBUTE) -> Option<extern "C" fn()> {
+    let globals = GLOBALS.lock().unwrap();
+    globals.aw_events.get(&event_name).map(|handler| *handler)
+}
+
+#[no_mangle]
 pub extern fn aw_callback_set(callback_name: aw::CALLBACK, callback: Option<extern "C" fn(rc: c_int)>) -> c_int {
     use ec::{callback_closure_set_all, event_closure_set_all};
     
@@ -260,7 +267,7 @@ pub extern fn aw_callback_set(callback_name: aw::CALLBACK, callback: Option<exte
         Some(callback) => { globals.aw_callbacks.insert(callback_name, callback); () }
     };
     drop(globals);
-    let closure = move |instance: vp::VPInstance, rc: c_int, unused: c_int| {
+    let closure = move |instance: vp::VPInstance, rc_: c_int, unused: c_int| {
         debug!("Inside a VP callback closure!");
         let aw_callback;
         {
@@ -268,13 +275,42 @@ pub extern fn aw_callback_set(callback_name: aw::CALLBACK, callback: Option<exte
             aw_callback = *globals.aw_callbacks.get(&callback_name).expect("Unable to find aw_callback!");
             globals.current = instance as usize;
         }
-        aw_callback(rc);
+        aw_callback(rc(rc_));
     };
     let closure = callback.map(|_| closure);
     match callback_name {
         aw::CALLBACK::CALLBACK_LOGIN => callback_closure_set_all(vp::CALLBACK_LOGIN, closure),
         aw::CALLBACK::CALLBACK_ENTER => callback_closure_set_all(vp::CALLBACK_ENTER, closure),
         _                            => { debug!("No mapping for callback!"); ()}
+    }
+    0
+}
+
+#[no_mangle]
+pub extern fn aw_event_set(event_name: aw::EVENT_ATTRIBUTE, handler: Option<extern "C" fn()>) -> c_int {
+    use ec::{callback_closure_set_all, event_closure_set_all};
+    
+    debug!("aw_event_set({:?}, ...);", event_name);
+    let mut globals = GLOBALS.lock().unwrap();
+    match handler {
+        None => { globals.aw_events.remove(&event_name); () },
+        Some(handler) => { globals.aw_events.insert(event_name, handler); () }
+    };
+    drop(globals);
+    let closure = move |instance: vp::VPInstance| {
+        debug!("Inside a VP event closure!");
+        let aw_event;
+        {
+            let mut globals = GLOBALS.lock().unwrap();
+            aw_event = *globals.aw_events.get(&event_name).expect("Unable to find aw_event!");
+            globals.current = instance as usize;
+        }
+        aw_event();
+    };
+    let closure = handler.map(|_| closure);
+    match event_name {
+        aw::EVENT_ATTRIBUTE::EVENT_CHAT => event_closure_set_all(vp::EVENT_CHAT, closure),
+        _                            => { debug!("No mapping for event!"); ()}
     }
     0
 }

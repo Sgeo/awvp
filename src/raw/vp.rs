@@ -249,7 +249,7 @@ extern "C" {
     pub fn double(instance: instance_t, attr: float_attribute_t) -> f64;
     #[link_name = "vp_string"]
     pub fn string(instance: VPInstance, attr: string_attribute_t)
-     -> *const ::std::os::raw::c_char;
+     -> *mut ::std::os::raw::c_char;
     #[link_name = "vp_data"]
     pub fn data(instance: VPInstance, attr: data_attribute_t,
                 length: *mut ::std::os::raw::c_int)
@@ -279,7 +279,7 @@ extern "C" {
                       value: f64) -> ::std::os::raw::c_int;
     #[link_name = "vp_string_set"]
     pub fn string_set(instance: VPInstance, name: string_attribute_t,
-                      str: *const ::std::os::raw::c_char);
+                      str: *mut ::std::os::raw::c_char);
     #[link_name = "vp_data_set"]
     pub fn data_set(instance: VPInstance, name: data_attribute_t,
                     length: ::std::os::raw::c_int,

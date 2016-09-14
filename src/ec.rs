@@ -12,6 +12,9 @@ macro_rules! generate_callback {
             debug!("generate_callback({:?}, {:?}, ..., {:?})", $this_callback_name, $current_callback_name, $activate);
             extern "C" fn callback(instance: VPInstance, arg1: c_int, arg2: c_int) {
                 debug!("Inside native vp callback, this_callback_name: {:?}", $this_callback_name);
+                if $this_callback_name == 11 {
+                    debug!("WORLD: {:?}", unsafe { ::std::ffi::CStr::from_ptr(vp::string(instance, vp::WORLD_NAME)) });
+                }
                 let globals = GLOBALS.lock().unwrap();
                 let maybe_closure = globals.instances.get(&(instance as usize)).and_then(|i| i.vp_callback_closures.get(&$this_callback_name)).map(|callback| callback.clone());
                 match maybe_closure {
@@ -21,6 +24,7 @@ macro_rules! generate_callback {
                     },
                     None => { debug!("Attempted to call closure not present!") }
                 }
+                debug!("Done calling native vp callback");
             }
             unsafe {
                 if $activate {

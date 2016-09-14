@@ -7,10 +7,7 @@ use attributes::{AttribValue, Attrib};
 use instance::Instance;
 
 fn vp_string(instance: &mut Instance, aw_attribute: aw::ATTRIBUTE, vp_attribute: vp::string_attribute_t) -> *mut c_char {
-    let s = unsafe {
-        CStr::from_ptr(vp::string(instance.vp, vp_attribute))
-    }.to_owned();
-    instance.attributes.set(aw_attribute, s);
+    instance.attributes.set(aw_attribute, unsafe { vp::string(instance.vp, vp_attribute) } as *mut c_char);
     instance.attributes.get(aw_attribute).unwrap()
 }
 
@@ -39,6 +36,7 @@ impl InstanceExt for Instance {
     
     fn set<T: Attrib>(&mut self, attribute: aw::ATTRIBUTE, value: T) {
         match attribute {
+            aw::ATTRIBUTE::WORLD_NAME => unsafe { vp::string_set(self.vp, vp::WORLD_NAME, value.into_req().expect("Wrong type for attribute!")); },
             _ => self.attributes.set(attribute, value)
         }
     }

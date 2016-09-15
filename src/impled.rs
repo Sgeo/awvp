@@ -77,7 +77,7 @@ pub extern fn aw_create(domain: *const c_char, port: c_int, instance: *mut *mut 
 #[no_mangle]
 pub extern fn aw_int(a: aw::ATTRIBUTE) -> c_int {
     let mut globals = GLOBALS.lock().unwrap();
-    let result = globals.current_instance_mut().map(|instance| instance.get(a).unwrap()).unwrap_or(0);
+    let result = globals.current_instance_mut().ok().and_then(|instance| instance.get(a)).unwrap_or(0);
     debug!("aw_int({:?}) = {:?}", a, result);
     result
 }
@@ -94,7 +94,7 @@ pub extern fn aw_int_set(a: aw::ATTRIBUTE, value: c_int) -> c_int {
 #[no_mangle]
 pub extern fn aw_bool(a: aw::ATTRIBUTE) -> c_int {
     let mut globals = GLOBALS.lock().unwrap();
-    let result = globals.current_instance_mut().map(|instance| instance.get(a).unwrap()).unwrap_or(0);
+    let result = globals.current_instance_mut().ok().and_then(|instance| instance.get(a)).unwrap_or(0);
     debug!("aw_bool({:?}) = {:?}", a, result);
     result
 }

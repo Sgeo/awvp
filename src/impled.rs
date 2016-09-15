@@ -125,15 +125,17 @@ pub extern fn aw_float_set(a: aw::ATTRIBUTE, value: f32) -> c_int {
 
 #[no_mangle]
 pub extern fn aw_string(a: aw::ATTRIBUTE) -> *mut c_char {
-    let mut globals = GLOBALS.lock().unwrap();
-    debug!("aw_string({:?});", a);
-    let result = globals.current_instance_mut().map(|instance| instance.get(a).unwrap()).unwrap_or(::std::ptr::null_mut());
-    if result.is_null() {
-        debug!("aw_string({:?}) is NULL", a);
-    } else {
-        debug!("aw_string({:?}) = {:?}", a, unsafe { CStr::from_ptr(result as *const _) });
+    use std::sync::Mutex;
+    lazy_static! {
+        static ref buffer: Mutex<Option<CString>> = Mutex::new(None);
     }
-    result
+    let mut globals = GLOBALS.lock().unwrap();
+    let mut bufferguard = buffer.lock().unwrap();
+    *bufferguard = globals.current_instance_mut().ok().map(|instance| instance.get(a).unwrap());
+    debug!("aw_string({:?}) = {:?}", a, &*bufferguard);
+    unsafe {
+        bufferguard.as_ref().map(|cstring| cstring.as_ptr() as *mut c_char).unwrap_or(::std::ptr::null_mut())
+    }
 }
 
 #[no_mangle]

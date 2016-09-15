@@ -67,6 +67,7 @@ impl Attrib for CString {
     fn default() -> Self { CString::new("").unwrap() }
 }
 
+
 impl Attrib for *mut c_char {
     fn to_attrib(self) -> AttribValue {
         unsafe {

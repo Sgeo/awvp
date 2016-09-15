@@ -7,8 +7,22 @@ use attributes::{AttribValue, Attrib};
 use instance::Instance;
 
 fn vp_string(instance: &mut Instance, aw_attribute: aw::ATTRIBUTE, vp_attribute: vp::string_attribute_t) -> *mut c_char {
-    instance.attributes.set(aw_attribute, unsafe { vp::string(instance.vp, vp_attribute) } as *mut c_char);
+    let string = unsafe {
+        CStr::from_ptr(vp::string(instance.vp, vp_attribute) as *const c_char).to_owned()
+    };
+    instance.attributes.set(aw_attribute, string);
     instance.attributes.get(aw_attribute).unwrap()
+}
+
+unsafe fn debug_vp_string(vp: vp::VPInstance, attribute: vp::string_attribute_t) -> *mut c_char {
+    let vpstring = vp::string(vp, attribute);
+    if vpstring.is_null() {
+        debug!("vp_string({:?}, {:?}) is null", vp, attribute);
+    } else {
+        let copy = CStr::from_ptr(vpstring as *const c_char).to_owned();
+        debug!("vp_string({:?}, {:?}) = {:?}", vp, attribute, copy);
+    }
+    vpstring
 }
 
 fn vp_data(vp: vp::VPInstance, attribute: vp::data_attribute_t) -> Vec<u8> {

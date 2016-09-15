@@ -328,3 +328,10 @@ pub extern fn aw_state_change() -> c_int {
         vp::state_change(vp(None))
     })
 }
+
+#[no_mangle]
+pub extern fn aw_say(msg: *const c_char) -> c_int {
+    rc(unsafe{
+        vp::say(vp(None), msg)
+    })
+}

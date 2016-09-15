@@ -513,8 +513,6 @@ static mut CURRENT_INSTANCE: *mut ::std::os::raw::c_void = 1 as *mut _;
 
 
 #[no_mangle] pub extern fn aw_exit() -> ::std::os::raw::c_int { 0 }
-#[no_mangle] pub extern fn aw_say(message: *const ::std::os::raw::c_char)
- -> ::std::os::raw::c_int { 0 }
 #[no_mangle] pub extern fn aw_whisper(session_id: ::std::os::raw::c_int,
                   message: *const ::std::os::raw::c_char)
  -> ::std::os::raw::c_int { 0 }

@@ -42,6 +42,8 @@ impl InstanceExt for Instance {
         match attribute {
             aw::ATTRIBUTE::CITIZEN_NUMBER => unsafe { vp::int(self.vp, vp::USER_ID) }.into_req(),
             aw::ATTRIBUTE::WORLD_NAME => vp_string(self, vp::WORLD_NAME).into_req(),
+            aw::ATTRIBUTE::CHAT_MESSAGE => vp_string(self, vp::CHAT_MESSAGE).into_req(),
+            aw::ATTRIBUTE::AVATAR_NAME => vp_string(self, vp::AVATAR_NAME).into_req(),
             _ => self.attributes.get(attribute)
         }
     }
@@ -49,6 +51,7 @@ impl InstanceExt for Instance {
     fn set<T: Attrib>(&mut self, attribute: aw::ATTRIBUTE, value: T) {
         match attribute {
             aw::ATTRIBUTE::WORLD_NAME => unsafe { vp::string_set(self.vp, vp::WORLD_NAME, value.into_req().expect("Wrong type for attribute!")); },
+            aw::ATTRIBUTE::CHAT_MESSAGE => unsafe { vp::string_set(self.vp, vp::CHAT_MESSAGE, value.into_req().expect("Wrong type for attribute!")); },
             _ => self.attributes.set(attribute, value)
         }
     }

@@ -6,12 +6,10 @@ use raw::{aw, vp};
 use attributes::{AttribValue, Attrib};
 use instance::Instance;
 
-fn vp_string(instance: &mut Instance, aw_attribute: aw::ATTRIBUTE, vp_attribute: vp::string_attribute_t) -> *mut c_char {
-    let string = unsafe {
+fn vp_string(instance: &mut Instance, vp_attribute: vp::string_attribute_t) -> CString {
+    unsafe {
         CStr::from_ptr(vp::string(instance.vp, vp_attribute) as *const c_char).to_owned()
-    };
-    instance.attributes.set(aw_attribute, string);
-    instance.attributes.get(aw_attribute).unwrap()
+    }
 }
 
 unsafe fn debug_vp_string(vp: vp::VPInstance, attribute: vp::string_attribute_t) -> *mut c_char {
@@ -43,7 +41,7 @@ impl InstanceExt for Instance {
     fn get<T: Attrib>(&mut self, attribute: aw::ATTRIBUTE) -> Option<T> {
         match attribute {
             aw::ATTRIBUTE::CITIZEN_NUMBER => unsafe { vp::int(self.vp, vp::USER_ID) }.into_req(),
-            aw::ATTRIBUTE::WORLD_NAME => vp_string(self, aw::ATTRIBUTE::WORLD_NAME, vp::WORLD_NAME).into_req(),
+            aw::ATTRIBUTE::WORLD_NAME => vp_string(self, vp::WORLD_NAME).into_req(),
             _ => self.attributes.get(attribute)
         }
     }

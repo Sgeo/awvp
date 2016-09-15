@@ -170,7 +170,6 @@ pub extern fn aw_wait(milliseconds: c_int) -> c_int {
     use raw::vp::VPInstance;
     let instances: Vec<VPInstance> = GLOBALS.lock().unwrap().instances.keys().map(|iref| *iref as VPInstance).collect();
     let mut result = 0;
-    debug!("aw_wait({:?});", milliseconds);
     if milliseconds < 0 {
         loop {
             unsafe {
@@ -181,14 +180,12 @@ pub extern fn aw_wait(milliseconds: c_int) -> c_int {
             }
         }
     } else {
-        warn!("aw_wait(nonzero) may be buggy and not wait on all instances");
         use std::time::{Instant, Duration};
         let start = Instant::now();
         let duration = Duration::from_millis(milliseconds as u64);
         while start.elapsed() <= duration {
             unsafe {
                 for instance in &instances {
-                    debug!("vp_wait({:?}, 0);", *instance);
                     result = vp::wait(*instance, 0);
                     if result != 0 { return rc(result); }
                 }
@@ -201,14 +198,12 @@ pub extern fn aw_wait(milliseconds: c_int) -> c_int {
 #[no_mangle]
 pub extern fn aw_instance() -> *mut c_void {
     let result = GLOBALS.lock().unwrap().current as *mut c_void;
-    debug!("aw_instance() = {:?}", result);
     result
 }
 
 #[no_mangle]
 pub extern fn aw_instance_set(instance: *mut c_void) -> c_int {
     GLOBALS.lock().unwrap().current = instance as usize;
-    debug!("aw_instance_set({:?})", instance);
     0
 }
 
@@ -318,6 +313,7 @@ pub extern fn aw_event_set(event_name: aw::EVENT_ATTRIBUTE, handler: Option<exte
 }
 
 #[no_mangle] pub extern fn aw_enter(world: *const c_char) -> c_int {
+    aw_string_set(aw::ATTRIBUTE::WORLD_NAME, world as *mut c_char);
     debug!("aw_enter({:?});", unsafe { CStr::from_ptr(world) });
     let result = rc(unsafe {
         vp::enter(vp(None), world)

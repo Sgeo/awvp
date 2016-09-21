@@ -518,8 +518,6 @@ static mut CURRENT_INSTANCE: *mut ::std::os::raw::c_void = 1 as *mut _;
  -> ::std::os::raw::c_int { 0 }
 #[no_mangle] pub extern fn aw_citizen_attributes_by_name(name: *const ::std::os::raw::c_char)
  -> ::std::os::raw::c_int { 0 }
-#[no_mangle] pub extern fn aw_citizen_attributes_by_number(citizen: ::std::os::raw::c_int)
- -> ::std::os::raw::c_int { 0 }
 #[no_mangle] pub extern fn aw_citizen_add() -> ::std::os::raw::c_int { 0 }
 #[no_mangle] pub extern fn aw_citizen_change() -> ::std::os::raw::c_int { 0 }
 #[no_mangle] pub extern fn aw_citizen_delete(citizen: ::std::os::raw::c_int)

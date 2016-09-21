@@ -110,7 +110,7 @@ pub extern fn aw_bool_set(a: aw::ATTRIBUTE, value: c_int) -> c_int {
 #[no_mangle]
 pub extern fn aw_float(a: aw::ATTRIBUTE) -> f32 {
     let mut globals = GLOBALS.lock().unwrap();
-    let result = globals.current_instance_mut().map(|instance| instance.get(a).unwrap()).unwrap_or(0.0);
+    let result = globals.current_instance_mut().ok().and_then(|instance| instance.get(a)).unwrap_or(0.0);
     debug!("aw_float({:?}) = {:?}", a, result);
     result
 }
@@ -131,7 +131,7 @@ pub extern fn aw_string(a: aw::ATTRIBUTE) -> *mut c_char {
     }
     let mut globals = GLOBALS.lock().unwrap();
     let mut bufferguard = buffer.lock().unwrap();
-    *bufferguard = globals.current_instance_mut().ok().map(|instance| instance.get(a).unwrap());
+    *bufferguard = globals.current_instance_mut().ok().and_then(|instance| instance.get(a));
     debug!("aw_string({:?}) = {:?}", a, &*bufferguard);
     unsafe {
         bufferguard.as_ref().map(|cstring| cstring.as_ptr() as *mut c_char).unwrap_or(::std::ptr::null_mut())
@@ -149,7 +149,7 @@ pub extern fn aw_string_set(a: aw::ATTRIBUTE, value: *mut c_char) -> c_int {
 #[no_mangle]
 pub extern fn aw_data(a: aw::ATTRIBUTE, lenptr: *mut c_uint) -> *mut c_char {
     let mut globals = GLOBALS.lock().unwrap();
-    let result: (*mut c_void, c_uint) = globals.current_instance_mut().map(|instance| instance.get(a).unwrap()).unwrap_or((0x1 as *mut c_void, 0));
+    let result: (*mut c_void, c_uint) = globals.current_instance_mut().ok().and_then(|instance| instance.get(a)).unwrap_or((0x1 as *mut c_void, 0));
     unsafe {
         *lenptr = result.1 as c_uint
     }
@@ -279,6 +279,7 @@ pub extern fn aw_callback_set(callback_name: aw::CALLBACK, callback: Option<exte
     match callback_name {
         aw::CALLBACK::CALLBACK_LOGIN => callback_closure_set_all(vp::CALLBACK_LOGIN, closure),
         aw::CALLBACK::CALLBACK_ENTER => callback_closure_set_all(vp::CALLBACK_ENTER, closure),
+        aw::CALLBACK::CALLBACK_CITIZEN_ATTRIBUTES => event_closure_set_all(vp::EVENT_USER_ATTRIBUTES, closure.map(|closure| move |instance| closure(instance, 0, 0))),
         _                            => { debug!("No mapping for callback!"); ()}
     }
     0
@@ -334,5 +335,12 @@ pub extern fn aw_state_change() -> c_int {
 pub extern fn aw_say(msg: *const c_char) -> c_int {
     rc(unsafe{
         vp::say(vp(None), msg)
+    })
+}
+
+#[no_mangle]
+pub extern fn aw_citizen_attributes_by_number(citizen: c_int) -> c_int {
+    rc(unsafe{
+        vp::user_attributes_by_id(vp(None), citizen)
     })
 }

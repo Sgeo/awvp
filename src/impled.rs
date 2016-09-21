@@ -183,13 +183,14 @@ pub extern fn aw_wait(milliseconds: c_int) -> c_int {
         use std::time::{Instant, Duration};
         let start = Instant::now();
         let duration = Duration::from_millis(milliseconds as u64);
-        while start.elapsed() <= duration {
+        while (milliseconds == 0) || (start.elapsed() <= duration) {
             unsafe {
                 for instance in &instances {
                     result = vp::wait(*instance, 0);
                     if result != 0 { return rc(result); }
                 }
             }
+            if milliseconds == 0 { break; }
         }
         return result;
     }

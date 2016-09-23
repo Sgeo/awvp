@@ -12,6 +12,9 @@ fn vp_string(instance: &mut Instance, vp_attribute: vp::string_attribute_t) -> C
     }
 }
 
+fn cint(val: c_int) -> c_int { val }
+
+
 unsafe fn debug_vp_string(vp: vp::VPInstance, attribute: vp::string_attribute_t) -> *mut c_char {
     let vpstring = vp::string(vp, attribute);
     if vpstring.is_null() {
@@ -46,6 +49,9 @@ impl InstanceExt for Instance {
             aw::ATTRIBUTE::AVATAR_NAME => vp_string(self, vp::AVATAR_NAME).into_req(),
             aw::ATTRIBUTE::WORLD_SPEAK_CAPABILITY => 1.into_req(),
             aw::ATTRIBUTE::WORLD_SPEAK_RIGHT => CString::new("*").ok().and_then(|cstr| cstr.into_req()),
+            aw::ATTRIBUTE::MY_X => ((unsafe { vp::float(self.vp, vp::MY_X) } * 1000.0) as c_int).into_req(),
+            aw::ATTRIBUTE::MY_Z => ((unsafe { vp::float(self.vp, vp::MY_Z) } * 1000.0) as c_int).into_req(),
+            aw::ATTRIBUTE::MY_Y => ((unsafe { vp::float(self.vp, vp::MY_Z) } * 1000.0) as c_int).into_req(),
             _ => self.attributes.get(attribute)
         }
     }
@@ -54,6 +60,9 @@ impl InstanceExt for Instance {
         match attribute {
             aw::ATTRIBUTE::WORLD_NAME => unsafe { vp::string_set(self.vp, vp::WORLD_NAME, value.into_req().expect("Wrong type for attribute!")); },
             aw::ATTRIBUTE::CHAT_MESSAGE => unsafe { vp::string_set(self.vp, vp::CHAT_MESSAGE, value.into_req().expect("Wrong type for attribute!")); },
+            aw::ATTRIBUTE::MY_X => unsafe { vp::float_set(self.vp, vp::MY_X, ((cint(value.into_req().expect("Wrong type for attribute!")) as f32)/1000.0)); },
+            aw::ATTRIBUTE::MY_Z => unsafe { vp::float_set(self.vp, vp::MY_Z, ((cint(value.into_req().expect("Wrong type for attribute!")) as f32)/1000.0)); },
+            aw::ATTRIBUTE::MY_Y => unsafe { vp::float_set(self.vp, vp::MY_Y, ((cint(value.into_req().expect("Wrong type for attribute!")) as f32)/1000.0)); },
             _ => self.attributes.set(attribute, value)
         }
     }

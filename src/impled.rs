@@ -309,13 +309,13 @@ pub extern fn aw_event_set(event_name: aw::EVENT_ATTRIBUTE, handler: Option<exte
     let closure = handler.map(|_| closure);
     match event_name {
         aw::EVENT_ATTRIBUTE::EVENT_CHAT => event_closure_set_all(vp::EVENT_CHAT, closure),
+        aw::EVENT_ATTRIBUTE::EVENT_WORLD_ATTRIBUTES => event_closure_set_all(vp::EVENT_WORLD_SETTINGS_CHANGED, closure),
         _                            => { debug!("No mapping for event!"); ()}
     }
     0
 }
 
 #[no_mangle] pub extern fn aw_enter(world: *const c_char) -> c_int {
-    aw_string_set(aw::ATTRIBUTE::WORLD_NAME, world as *mut c_char);
     debug!("aw_enter({:?});", unsafe { CStr::from_ptr(world) });
     let result = rc(unsafe {
         vp::enter(vp(None), world)

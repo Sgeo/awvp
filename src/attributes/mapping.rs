@@ -44,6 +44,8 @@ impl InstanceExt for Instance {
             aw::ATTRIBUTE::WORLD_NAME => vp_string(self, vp::WORLD_NAME).into_req(),
             aw::ATTRIBUTE::CHAT_MESSAGE => vp_string(self, vp::CHAT_MESSAGE).into_req(),
             aw::ATTRIBUTE::AVATAR_NAME => vp_string(self, vp::AVATAR_NAME).into_req(),
+            aw::ATTRIBUTE::WORLD_SPEAK_CAPABILITY => 1.into_req(),
+            aw::ATTRIBUTE::WORLD_SPEAK_RIGHT => CString::new("*").ok().and_then(|cstr| cstr.into_req()),
             _ => self.attributes.get(attribute)
         }
     }

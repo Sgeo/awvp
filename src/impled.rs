@@ -310,6 +310,9 @@ pub extern fn aw_event_set(event_name: aw::EVENT_ATTRIBUTE, handler: Option<exte
     match event_name {
         aw::EVENT_ATTRIBUTE::EVENT_CHAT => event_closure_set_all(vp::EVENT_CHAT, closure),
         aw::EVENT_ATTRIBUTE::EVENT_WORLD_ATTRIBUTES => event_closure_set_all(vp::EVENT_WORLD_SETTINGS_CHANGED, closure),
+        aw::EVENT_ATTRIBUTE::EVENT_AVATAR_ADD => event_closure_set_all(vp::EVENT_AVATAR_ADD, closure),
+        aw::EVENT_ATTRIBUTE::EVENT_AVATAR_CHANGE => event_closure_set_all(vp::EVENT_AVATAR_CHANGE, closure),
+        aw::EVENT_ATTRIBUTE::EVENT_AVATAR_DELETE => event_closure_set_all(vp::EVENT_AVATAR_DELETE, closure),
         _                            => { debug!("No mapping for event!"); ()}
     }
     0

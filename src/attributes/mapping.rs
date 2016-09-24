@@ -56,16 +56,31 @@ impl InstanceExt for Instance {
             aw::ATTRIBUTE::CHAT_MESSAGE => vp_string(self, vp::CHAT_MESSAGE).into_req(),
             aw::ATTRIBUTE::AVATAR_NAME => vp_string(self, vp::AVATAR_NAME).into_req(),
             aw::ATTRIBUTE::AVATAR_SESSION => unsafe { vp::int(self.vp, vp::AVATAR_SESSION) }.into_req(),
+            aw::ATTRIBUTE::CHAT_SESSION => unsafe { vp::int(self.vp, vp::AVATAR_SESSION) }.into_req(),
             aw::ATTRIBUTE::WORLD_SPEAK_CAPABILITY => 1.into_req(),
             aw::ATTRIBUTE::WORLD_ALLOW_TOURIST_WHISPER => 1.into_req(),
             aw::ATTRIBUTE::WORLD_ALLOW_CITIZEN_WHISPER => 1.into_req(),
             aw::ATTRIBUTE::WORLD_SPEAK_RIGHT => CString::new("*").ok().and_then(|cstr| cstr.into_req()),
+            aw::ATTRIBUTE::WORLD_BUILD_RIGHT => CString::new("*").ok().and_then(|cstr| cstr.into_req()),
+            aw::ATTRIBUTE::WORLD_ENTER_RIGHT => CString::new("*").ok().and_then(|cstr| cstr.into_req()),
+            aw::ATTRIBUTE::WORLD_SPECIAL_OBJECTS_RIGHT => CString::new("*").ok().and_then(|cstr| cstr.into_req()),
+            aw::ATTRIBUTE::WORLD_BOTS_RIGHT => CString::new("*").ok().and_then(|cstr| cstr.into_req()),
+            aw::ATTRIBUTE::WORLD_SPECIAL_COMMANDS_RIGHT => CString::new("*").ok().and_then(|cstr| cstr.into_req()),
             aw::ATTRIBUTE::MY_X => coord_vp_to_aw(unsafe { vp::float(self.vp, vp::MY_X) }).into_req(),
             aw::ATTRIBUTE::MY_Z => coord_vp_to_aw(unsafe { vp::float(self.vp, vp::MY_Z) }).into_req(),
             aw::ATTRIBUTE::MY_Y => coord_vp_to_aw(unsafe { vp::float(self.vp, vp::MY_Y) }).into_req(),
             aw::ATTRIBUTE::AVATAR_X => coord_vp_to_aw(unsafe { vp::float(self.vp, vp::AVATAR_X) }).into_req(),
             aw::ATTRIBUTE::AVATAR_Z => coord_vp_to_aw(unsafe { vp::float(self.vp, vp::AVATAR_Z) }).into_req(),
             aw::ATTRIBUTE::AVATAR_Y => coord_vp_to_aw(unsafe { vp::float(self.vp, vp::AVATAR_Y) }).into_req(),
+            aw::ATTRIBUTE::AVATAR_PRIVILEGE => unsafe { vp::int(self.vp, vp::USER_ID) }.into_req(),
+            aw::ATTRIBUTE::AVATAR_CITIZEN => unsafe {
+                let name = vp_string(self, vp::AVATAR_NAME);
+                if name.as_bytes().first() == Some(&b'[') {
+                    0
+                } else {
+                    vp::int(self.vp, vp::USER_ID) 
+                }
+            }.into_req(),
             _ => self.attributes.get(attribute)
         }
     }

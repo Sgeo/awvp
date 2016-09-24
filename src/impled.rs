@@ -347,3 +347,19 @@ pub extern fn aw_citizen_attributes_by_number(citizen: c_int) -> c_int {
         vp::user_attributes_by_id(vp(None), citizen)
     })
 }
+
+#[no_mangle]
+pub extern fn aw_whisper(session: c_int, message: *const c_char) -> c_int {
+    rc(unsafe{
+        let mut globals = GLOBALS.lock().unwrap();
+        let instance = try_rc!(globals.current_instance_mut());
+        let vp = instance.vp;
+        let name: CString = try_rc!(instance.get(aw::ATTRIBUTE::LOGIN_NAME).ok_or(::rc::aw::RC_NAME_TOO_SHORT));
+        let mut botty_name_vec = Vec::with_capacity(name.as_bytes().len() + 2);
+        botty_name_vec.push(b'[');
+        botty_name_vec.append(&mut name.into_bytes());
+        botty_name_vec.push(b']');
+        let botty_name = CString::new(botty_name_vec).expect("Unable to create new CString for name");
+        vp::console_message(vp, session, botty_name.as_ptr(), message, vp::TEXT_EFFECT_ITALIC, 0, 0, 255)
+    })
+}

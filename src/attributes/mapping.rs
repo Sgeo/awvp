@@ -22,6 +22,18 @@ fn coord_vp_to_aw(vp: f32) -> c_int {
     (vp * 1000.0) as c_int
 }
 
+fn flip_yaw(yaw: c_int) -> c_int {
+    (5400 - yaw) % 3600
+}
+
+fn yaw_aw_to_vp(aw: c_int) -> f32 {
+    (flip_yaw(aw) as f32) / 10.0
+}
+
+fn yaw_vp_to_aw(vp: f32) -> c_int {
+    flip_yaw((vp * 10.0) as c_int)
+}
+
 
 unsafe fn debug_vp_string(vp: vp::VPInstance, attribute: vp::string_attribute_t) -> *mut c_char {
     let vpstring = vp::string(vp, attribute);
@@ -71,9 +83,11 @@ impl InstanceExt for Instance {
             aw::ATTRIBUTE::MY_X => coord_vp_to_aw(unsafe { vp::float(self.vp, vp::MY_X) }).into_req(),
             aw::ATTRIBUTE::MY_Z => coord_vp_to_aw(unsafe { vp::float(self.vp, vp::MY_Z) }).into_req(),
             aw::ATTRIBUTE::MY_Y => coord_vp_to_aw(unsafe { vp::float(self.vp, vp::MY_Y) }).into_req(),
+            aw::ATTRIBUTE::MY_YAW => yaw_vp_to_aw(unsafe { vp::float(self.vp, vp::MY_YAW) }).into_req(),
             aw::ATTRIBUTE::AVATAR_X => coord_vp_to_aw(unsafe { vp::float(self.vp, vp::AVATAR_X) }).into_req(),
             aw::ATTRIBUTE::AVATAR_Z => coord_vp_to_aw(unsafe { vp::float(self.vp, vp::AVATAR_Z) }).into_req(),
             aw::ATTRIBUTE::AVATAR_Y => coord_vp_to_aw(unsafe { vp::float(self.vp, vp::AVATAR_Y) }).into_req(),
+            aw::ATTRIBUTE::AVATAR_YAW => yaw_vp_to_aw(unsafe { vp::float(self.vp, vp::AVATAR_YAW) }).into_req(),
             aw::ATTRIBUTE::AVATAR_PRIVILEGE => unsafe { vp::int(self.vp, vp::USER_ID) }.into_req(),
             aw::ATTRIBUTE::AVATAR_CITIZEN => unsafe {
                 let name = vp_string(self, vp::AVATAR_NAME);
@@ -94,6 +108,7 @@ impl InstanceExt for Instance {
             aw::ATTRIBUTE::MY_X => unsafe { vp::float_set(self.vp, vp::MY_X, coord_aw_to_vp(value.into_req().expect("Wrong type for attribute!"))); },
             aw::ATTRIBUTE::MY_Z => unsafe { vp::float_set(self.vp, vp::MY_Z, coord_aw_to_vp(value.into_req().expect("Wrong type for attribute!"))); },
             aw::ATTRIBUTE::MY_Y => unsafe { vp::float_set(self.vp, vp::MY_Y, coord_aw_to_vp(value.into_req().expect("Wrong type for attribute!"))); },
+            aw::ATTRIBUTE::MY_YAW => unsafe { vp::float_set(self.vp, vp::MY_YAW, yaw_aw_to_vp(value.into_req().expect("Wrong type for attribute!"))); },
             _ => self.attributes.set(attribute, value)
         }
     }

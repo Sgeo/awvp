@@ -84,6 +84,8 @@ impl InstanceExt for Instance {
             aw::ATTRIBUTE::MY_Z => coord_vp_to_aw(unsafe { vp::float(self.vp, vp::MY_Z) }).into_req(),
             aw::ATTRIBUTE::MY_Y => coord_vp_to_aw(unsafe { vp::float(self.vp, vp::MY_Y) }).into_req(),
             aw::ATTRIBUTE::MY_YAW => yaw_vp_to_aw(unsafe { vp::float(self.vp, vp::MY_YAW) }).into_req(),
+            aw::ATTRIBUTE::MY_TYPE => unsafe { vp::int(self.vp, vp::MY_TYPE) }.into_req(),
+            aw::ATTRIBUTE::AVATAR_TYPE => unsafe { vp::int(self.vp, vp::AVATAR_TYPE) }.into_req(),
             aw::ATTRIBUTE::AVATAR_X => coord_vp_to_aw(unsafe { vp::float(self.vp, vp::AVATAR_X) }).into_req(),
             aw::ATTRIBUTE::AVATAR_Z => coord_vp_to_aw(unsafe { vp::float(self.vp, vp::AVATAR_Z) }).into_req(),
             aw::ATTRIBUTE::AVATAR_Y => coord_vp_to_aw(unsafe { vp::float(self.vp, vp::AVATAR_Y) }).into_req(),
@@ -105,6 +107,7 @@ impl InstanceExt for Instance {
         match attribute {
             aw::ATTRIBUTE::WORLD_NAME => unsafe { vp::string_set(self.vp, vp::WORLD_NAME, value.into_req().expect("Wrong type for attribute!")); },
             aw::ATTRIBUTE::CHAT_MESSAGE => unsafe { vp::string_set(self.vp, vp::CHAT_MESSAGE, value.into_req().expect("Wrong type for attribute!")); },
+            aw::ATTRIBUTE::MY_TYPE => unsafe { vp::int_set(self.vp, vp::MY_TYPE, value.into_req().expect("Wrong type for attribute!")); },
             aw::ATTRIBUTE::MY_X => unsafe { vp::float_set(self.vp, vp::MY_X, coord_aw_to_vp(value.into_req().expect("Wrong type for attribute!"))); },
             aw::ATTRIBUTE::MY_Z => unsafe { vp::float_set(self.vp, vp::MY_Z, coord_aw_to_vp(value.into_req().expect("Wrong type for attribute!"))); },
             aw::ATTRIBUTE::MY_Y => unsafe { vp::float_set(self.vp, vp::MY_Y, coord_aw_to_vp(value.into_req().expect("Wrong type for attribute!"))); },

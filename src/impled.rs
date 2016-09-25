@@ -11,10 +11,8 @@ use attributes::mapping::InstanceExt;
 
 use rc::rc;
 
-
-
-#[no_mangle]
-pub extern fn aw_init() -> c_int {
+#[cfg(debug_assertions)]
+fn init_logging() {
     extern crate flexi_logger;
     extern crate log_panics;
     use std::panic;
@@ -23,15 +21,17 @@ pub extern fn aw_init() -> c_int {
     flexi_logger::init(config, None).expect("Unable to initialize logger");
     
     log_panics::init();
+}
+
+#[cfg(not(debug_assertions))]
+fn init_logging() {
+}
+
+
+#[no_mangle]
+pub extern fn aw_init() -> c_int {
+
     
-    
-    /*panic::set_hook(Box::new(move |panic_info| {
-        error!("PANIC!");
-        error!("Panic Payload [str]: {:?}", panic_info.payload().downcast_ref::<&'static str>());
-        error!("Panic Payload [String]: {:?}", panic_info.payload().downcast_ref::<String>());
-        error!("Panic Location: File: {:?}, Line: {:?}", panic_info.location().unwrap().file(), panic_info.location().unwrap().line());
-        error!("Backtrace: {:?}", backtrace);
-    }));*/
     
     debug!("aw_init();");
     rc(unsafe { vp::init(3) })

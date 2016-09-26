@@ -31,8 +31,7 @@ fn init_logging() {
 #[no_mangle]
 pub extern fn aw_init() -> c_int {
 
-    
-    
+    init_logging();
     debug!("aw_init();");
     rc(unsafe { vp::init(3) })
 }
@@ -168,7 +167,16 @@ pub extern fn aw_data_set(a: aw::ATTRIBUTE, value: *mut c_char, len: c_uint) -> 
 #[no_mangle]
 pub extern fn aw_wait(milliseconds: c_int) -> c_int {
     use raw::vp::VPInstance;
-    let instances: Vec<VPInstance> = GLOBALS.lock().unwrap().instances.keys().map(|iref| *iref as VPInstance).collect();
+    let instances: Vec<VPInstance>;
+    let delays: Vec<Box<FnMut()>>;
+    {
+        let mut globals = GLOBALS.lock().unwrap();
+        instances = globals.instances.keys().map(|iref| *iref as VPInstance).collect();
+        delays = ::std::mem::replace(&mut globals.delayed, Vec::new());
+    }
+    for mut delay in delays {
+        delay();
+    }
     let mut result = 0;
     if milliseconds < 0 {
         loop {
@@ -310,7 +318,21 @@ pub extern fn aw_event_set(event_name: aw::EVENT_ATTRIBUTE, handler: Option<exte
     match event_name {
         aw::EVENT_ATTRIBUTE::EVENT_CHAT => event_closure_set_all(vp::EVENT_CHAT, closure),
         aw::EVENT_ATTRIBUTE::EVENT_WORLD_ATTRIBUTES => event_closure_set_all(vp::EVENT_WORLD_SETTINGS_CHANGED, closure),
-        aw::EVENT_ATTRIBUTE::EVENT_AVATAR_ADD => event_closure_set_all(vp::EVENT_AVATAR_ADD, closure),
+        aw::EVENT_ATTRIBUTE::EVENT_AVATAR_ADD => event_closure_set_all(vp::EVENT_AVATAR_ADD, closure.map(|closure| move |vpinstance| {
+            {
+                let mut globals = GLOBALS.lock().unwrap();
+                globals.current = vpinstance as usize;
+                let _ = globals.current_instance_mut().map(|instance| {
+                    let username: CString = instance.get(aw::ATTRIBUTE::AVATAR_NAME).expect("No valid username in EVENT_AVATAR_ADD");
+                    let citnum: c_int = instance.get(aw::ATTRIBUTE::AVATAR_CITIZEN).expect("No valid citizen in EVENT_AVATAR_ADD");
+                    debug!("Adding to citnamenum cache: {:?}", (&username, &citnum));
+                    if citnum != 0 {
+                        instance.citname_to_citnum.insert(username, citnum);
+                    }
+                });
+            };
+            closure(vpinstance);
+        })),
         aw::EVENT_ATTRIBUTE::EVENT_AVATAR_CHANGE => event_closure_set_all(vp::EVENT_AVATAR_CHANGE, closure),
         aw::EVENT_ATTRIBUTE::EVENT_AVATAR_DELETE => event_closure_set_all(vp::EVENT_AVATAR_DELETE, closure),
         _                            => { debug!("No mapping for event!"); ()}
@@ -362,4 +384,47 @@ pub extern fn aw_whisper(session: c_int, message: *const c_char) -> c_int {
         let botty_name = CString::new(botty_name_vec).expect("Unable to create new CString for name");
         vp::console_message(vp, session, botty_name.as_ptr(), message, vp::TEXT_EFFECT_ITALIC, 0, 0, 255)
     })
+}
+
+#[no_mangle]
+pub extern fn aw_citizen_attributes_by_name(name: *const c_char) -> c_int {
+    debug!("aw_citizen_attributes_by_name(...);");
+    let mut globals = GLOBALS.lock().unwrap();
+    let current = globals.current;
+    let wanted_citname = unsafe {
+        CStr::from_ptr(name).to_owned()
+    };
+    debug!("wanted_citname: {:?}", &wanted_citname);
+    let maybe_citnum;
+    {
+        let instance = try_rc!(globals.current_instance_mut());
+        maybe_citnum = instance.citname_to_citnum.get(&wanted_citname).map(|citnum| *citnum);
+    }
+    debug!("Made it to the check");
+    if let Some(citnum) = maybe_citnum {
+        debug!("Found a by_name result cached!");
+        globals.delay(move || {
+            debug!("Inside the delayed callback");
+            let maybe_callback;
+            {
+                let mut globals = GLOBALS.lock().unwrap();
+                globals.current = current;
+                {
+                    let instance = globals.current_instance_mut().expect("No current instance, aw_citizen_attributes_by_name() called without active instance?");
+                    instance.set_override(aw::ATTRIBUTE::CITIZEN_NAME, Some(wanted_citname.clone()));
+                    instance.set_override(aw::ATTRIBUTE::CITIZEN_NUMBER, Some(citnum));
+                }
+                maybe_callback = globals.aw_callbacks.get(&aw::CALLBACK::CALLBACK_CITIZEN_ATTRIBUTES).map(|callback| *callback);
+            }
+            if let Some(callback) = maybe_callback {
+                debug!("About to call AW's callback for aw_citizen_attributes_by_name");
+                callback(0);
+            }
+            let mut globals = GLOBALS.lock().unwrap();
+            let instance = globals.current_instance_mut().expect("No current instance, aw_citizen_attributes_by_name() called without active instance?");
+            instance.set_override::<CString>(aw::ATTRIBUTE::CITIZEN_NAME, None);
+            instance.set_override::<c_int>(aw::ATTRIBUTE::CITIZEN_NUMBER, None);
+        });
+    }
+    0
 }

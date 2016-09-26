@@ -58,10 +58,24 @@ fn vp_data(vp: vp::VPInstance, attribute: vp::data_attribute_t) -> Vec<u8> {
 pub trait InstanceExt {
     fn get<T: Attrib>(&mut self, attribute: aw::ATTRIBUTE) -> Option<T>;
     fn set<T: Attrib>(&mut self, attribute: aw::ATTRIBUTE, value: T);
+    fn set_override<T: Attrib>(&mut self, attribute: aw::ATTRIBUTE, value: Option<T>);
 }
 
 impl InstanceExt for Instance {
+    fn set_override<T: Attrib>(&mut self, attribute: aw::ATTRIBUTE, value: Option<T>) {
+        match value {
+            Some(value) => {
+                self.overrides.insert(attribute, value.to_attrib());
+            },
+            None => {
+                self.overrides.remove(&attribute);
+            }
+        }
+    }
     fn get<T: Attrib>(&mut self, attribute: aw::ATTRIBUTE) -> Option<T> {
+        if let Some(overridden) = self.overrides.get(&attribute).and_then(|attrib| T::from_attrib(attrib)) {
+            return Some(overridden);
+        }
         match attribute {
             aw::ATTRIBUTE::CITIZEN_NUMBER => unsafe { vp::int(self.vp, vp::USER_ID) }.into_req(),
             aw::ATTRIBUTE::CITIZEN_NAME => vp_string(self, vp::USER_NAME).into_req(),

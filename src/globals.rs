@@ -14,7 +14,8 @@ pub struct Globals {
     pub vp_event_closures: HashMap<vp::event_t, Arc<Box<Fn(vp::VPInstance)+'static>>>,
     pub vp_callback_closures: HashMap<vp::event_t, Arc<Box<Fn(vp::VPInstance, c_int, c_int)+'static>>>,
     pub current: usize,
-    pub instances: HashMap<usize, Instance>
+    pub instances: HashMap<usize, Instance>,
+    pub delayed: Vec<Box<FnMut()+'static>>
 }
 
 unsafe impl Send for Globals {}
@@ -27,7 +28,8 @@ lazy_static! {
             vp_event_closures: HashMap::new(),
             vp_callback_closures: HashMap::new(),
             current: 0,
-            instances: HashMap::new()
+            instances: HashMap::new(),
+            delayed: Vec::new()
         })
     };
 }
@@ -41,6 +43,9 @@ impl Globals {
         let current = self.current;
         if current == 0 { return Err(rc::aw::RC_NO_INSTANCE); }
         self.instances.get_mut(&current).ok_or(rc::aw::RC_INVALID_INSTANCE)
+    }
+    pub fn delay<F: FnMut()+'static>(&mut self, f: F) {
+        self.delayed.push(Box::new(f));
     }
 }
 

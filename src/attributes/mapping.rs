@@ -81,6 +81,7 @@ impl InstanceExt for Instance {
             aw::ATTRIBUTE::CITIZEN_NAME => vp_string(self, vp::USER_NAME).into_req(),
             aw::ATTRIBUTE::WORLD_NAME => vp_string(self, vp::WORLD_NAME).into_req(),
             aw::ATTRIBUTE::WORLD_BUILD_NUMBER => 69.into_req(), // Needed for Xelagot to whisper, 69 = latest 3.6
+            aw::ATTRIBUTE::UNIVERSE_BUILD_NUMBER => 100.into_req(),
             aw::ATTRIBUTE::CHAT_MESSAGE => vp_string(self, vp::CHAT_MESSAGE).into_req(),
             aw::ATTRIBUTE::AVATAR_NAME => vp_string(self, vp::AVATAR_NAME).into_req(),
             aw::ATTRIBUTE::AVATAR_SESSION => unsafe { vp::int(self.vp, vp::AVATAR_SESSION) }.into_req(),

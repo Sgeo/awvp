@@ -431,5 +431,9 @@ pub extern fn aw_citizen_attributes_by_name(name: *const c_char) -> c_int {
 
 #[no_mangle]
 pub extern fn aw_sector_from_cell(cell: c_int) -> c_int {
-    (cell + 4)/8
+    let mut sector = (cell + 4)/8;
+    if cell < -4 { // cell + 4 < 0
+        sector -= 1;
+    }
+    sector
 }

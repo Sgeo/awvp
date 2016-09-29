@@ -428,3 +428,8 @@ pub extern fn aw_citizen_attributes_by_name(name: *const c_char) -> c_int {
     }
     0
 }
+
+#[no_mangle]
+pub extern fn aw_sector_from_cell(cell: c_int) -> c_int {
+    (cell + 4)/8
+}

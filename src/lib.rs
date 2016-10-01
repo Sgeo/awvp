@@ -4,6 +4,9 @@ use std::sync::atomic::Ordering;
 #[macro_use]
 extern crate log;
 
+#[macro_use]
+extern crate itertools;
+
 mod rc;
 
 use rc::rc;
@@ -36,6 +39,7 @@ mod globals;
 mod instance;
 mod attributes;
 mod ec;
+mod query;
 
 pub mod impled;
 

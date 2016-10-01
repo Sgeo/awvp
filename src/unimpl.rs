@@ -533,12 +533,8 @@ static mut CURRENT_INSTANCE: *mut ::std::os::raw::c_void = 1 as *mut _;
 #[no_mangle] pub extern fn aw_object_delete() -> ::std::os::raw::c_int { 0 }
 #[no_mangle] pub extern fn aw_object_load() -> ::std::os::raw::c_int { 0 }
 #[no_mangle] pub extern fn aw_query(x_sector: ::std::os::raw::c_int,
-                z_sector: ::std::os::raw::c_int,
-                sequence: *mut [::std::os::raw::c_int; 3usize])
- -> ::std::os::raw::c_int { 0 }
-#[no_mangle] pub extern fn aw_query_5x5(x_sector: ::std::os::raw::c_int,
                     z_sector: ::std::os::raw::c_int,
-                    sequence: *mut [::std::os::raw::c_int; 5usize])
+                    sequence: *mut [::std::os::raw::c_int; 3usize])
  -> ::std::os::raw::c_int { 0 }
 #[no_mangle] pub extern fn aw_random() -> ::std::os::raw::c_int { 0 }
 #[no_mangle] pub extern fn aw_world_attributes_change() -> ::std::os::raw::c_int { 0 }

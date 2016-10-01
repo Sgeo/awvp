@@ -168,13 +168,18 @@ pub extern fn aw_data_set(a: aw::ATTRIBUTE, value: *mut c_char, len: c_uint) -> 
 pub extern fn aw_wait(milliseconds: c_int) -> c_int {
     use raw::vp::VPInstance;
     let instances: Vec<VPInstance>;
-    let delays: Vec<Box<FnMut()>>;
+    let mut delays: Option<Vec<Box<FnMut()>>>;
     {
         let mut globals = GLOBALS.lock().unwrap();
         instances = globals.instances.keys().map(|iref| *iref as VPInstance).collect();
-        delays = ::std::mem::replace(&mut globals.delayed, Vec::new());
+        let num_of_delays = globals.delayed.len();
+        if num_of_delays > 0 {
+            delays = Some(::std::mem::replace(&mut globals.delayed, Vec::new()));
+        } else {
+            delays = None
+        }
     }
-    for mut delay in delays {
+    for mut delay in delays.iter_mut().flat_map(|delay_vec| delay_vec) {
         delay();
     }
     let mut result = 0;
@@ -431,9 +436,24 @@ pub extern fn aw_citizen_attributes_by_name(name: *const c_char) -> c_int {
 
 #[no_mangle]
 pub extern fn aw_sector_from_cell(cell: c_int) -> c_int {
-    let mut sector = (cell + 4)/8;
-    if cell < -4 { // cell + 4 < 0
-        sector -= 1;
+    use query;
+    query::sector_from_cell(cell)
+}
+
+#[no_mangle]
+pub extern fn aw_query_5x5(x_sector: c_int, z_sector: c_int, sequence: *mut [c_int; 5]) -> c_int {
+    use std::slice;
+    use query;
+    let sequence: [[c_int; 5]; 5] = unsafe {
+        let sequence = slice::from_raw_parts(sequence as *const _, 5);
+        [sequence[0], sequence[1], sequence[2], sequence[3], sequence[4]]
+    };
+    debug!("aw_query_5x5({:?}, {:?}, {:?});", x_sector, z_sector, sequence);
+    let instance = vp(None);
+    for (cell_x, cell_z) in query::cell_coords_from_sector_coords(x_sector, z_sector) { // TODO: Whole zone, not just sector
+        unsafe {
+            vp::query_cell(instance, cell_x, cell_z);
+        }
     }
-    sector
+    0
 }

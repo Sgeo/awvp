@@ -8,6 +8,8 @@ use rc;
 
 use instance::Instance;
 
+use query::SequenceNums;
+
 pub struct Globals {
     pub aw_events: HashMap<aw::EVENT_ATTRIBUTE, extern "C" fn()>,
     pub aw_callbacks: HashMap<aw::CALLBACK, extern "C" fn(rc: c_int)>,
@@ -15,7 +17,8 @@ pub struct Globals {
     pub vp_callback_closures: HashMap<vp::event_t, Arc<Box<Fn(vp::VPInstance, c_int, c_int)+'static>>>,
     pub current: usize,
     pub instances: HashMap<usize, Instance>,
-    pub delayed: Vec<Box<FnMut()+'static>>
+    pub delayed: Vec<Box<FnMut()+'static>>,
+    pub sequence_nums: SequenceNums
 }
 
 unsafe impl Send for Globals {}
@@ -29,7 +32,8 @@ lazy_static! {
             vp_callback_closures: HashMap::new(),
             current: 0,
             instances: HashMap::new(),
-            delayed: Vec::new()
+            delayed: Vec::new(),
+            sequence_nums: SequenceNums::new()
         })
     };
 }
